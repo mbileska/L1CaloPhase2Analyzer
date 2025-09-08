@@ -2,21 +2,9 @@ import FWCore.ParameterSet.Config as cms
 
 
 l1NtupleProducer = cms.EDAnalyzer("L1TCaloAnalyzer",
-                                  folderName              = cms.untracked.string("firstFolder"),
-                                  genParticles     = cms.InputTag("genParticles", "", "HLT"),
-                                  #packedPfCands           = cms.InputTag("packedPFCandidates"),
-                                  #pfCands                 = cms.InputTag("particleFlow"),
-                                  ecalDigis = cms.InputTag("simEcalEBTriggerPrimitiveDigis","","HLT"),
-                                  hcalDigis = cms.InputTag("simHcalTriggerPrimitiveDigis","","HLT"),
-                                  rctClusters = cms.InputTag("l1tPhase2L1CaloEGammaEmulator", "RCTClusters"),
-                                  gctClusters = cms.InputTag("l1tPhase2L1CaloEGammaEmulator", "GCTClusters"),
-                                  rctTowers = cms.InputTag("l1tPhase2L1CaloEGammaEmulator", "RCTTowers"),
-                                  gctTowers = cms.InputTag("l1tPhase2L1CaloEGammaEmulator", "GCTFullTowers"),
-                                  PFclusters              = cms.InputTag("l1tPhase2CaloPFClusterEmulator", "GCTPFCluster"),
-                                  L1HgcalTowersInputTag   = cms.InputTag("l1tHGCalTowerProducer","HGCalTowerProcessor",""),
-                                  caloJets                = cms.InputTag("l1tPhase2CaloJetEmulator", "GCTJet"),
-                                  caloJetsDigis           = cms.InputTag("l1tPhase2CaloJetEmulator", "GCTDigitizedJet"),
-                                  recoJets                = cms.InputTag("slimmedJets","","RECO"),
-                                  genJets                 = cms.InputTag("slimmedGenJets","","RECO")
-#                                  clusters  = cms.InputTag('L1EGammaClusterEmuProducer')
+                                  folderName = cms.untracked.string("firstFolder"),
+                                  link0 = cms.InputTag("l1tPhase2RCTEmulatorProducer", "LinkOut0"),
+                                  link1 = cms.InputTag("l1tPhase2RCTEmulatorProducer", "LinkOut1"),
+                                  link2 = cms.InputTag("l1tPhase2RCTEmulatorProducer", "LinkOut2"),
+                                  link3 = cms.InputTag("l1tPhase2RCTEmulatorProducer", "LinkOut3"),
 )
