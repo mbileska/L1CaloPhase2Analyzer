@@ -37,18 +37,18 @@ process.GlobalTag = GlobalTag(process.GlobalTag, '131X_mcRun4_realistic_v6', '')
 process.load('SimCalorimetry.HcalTrigPrimProducers.hcaltpdigi_cff')
 process.load('CalibCalorimetry.CaloTPG.CaloTPGTranscoder_cfi')
 
-# Run L1 simulation (necessary to get HGCal towers)
-process.load("L1Trigger.L1CaloTrigger.l1tPhase2RCTEmulatorProducer_cfi")
-process.L1simulation_step = cms.Path(process.l1tPhase2RCTEmulatorProducer)
+#Run old emulator
+process.load("L1Trigger.L1CaloTrigger.l1tPhase2L1CaloEGammaEmulator_cfi")
+process.L1simulation_step = cms.Path(process.l1tPhase2L1CaloEGammaEmulator)
 
 # Run the analyzer
-process.load('L1Trigger.L1CaloPhase2Analyzer.l1TCaloAnalyzer_cfi')
+process.load('L1Trigger.L1CaloPhase2Analyzer.l1TOldAnalyzer_cfi')
 
-process.RCT = cms.Path( process.l1tPhase2RCTEmulatorProducer*process.l1NtupleProducer )
+process.RCT = cms.Path( process.l1tPhase2L1CaloEGammaEmulator*process.l1NtupleOldProducer )
 
 # output file
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string('analyzer.root')
+    fileName = cms.string('old_analyzer.root')
 )
 
 process.schedule = cms.Schedule(process.RCT)
