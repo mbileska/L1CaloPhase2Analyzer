@@ -4,8 +4,8 @@
 
    Forked from https://github.com/pallabidas/L1CaloPhase2Analyzer.git, branch 13_3_0_calojet, which in turn
    is adapted from: https://github.com/skkwan/phase2-l1Calo-analyzer.
-   This repo is for running the Phase-2 calo emulator, in particular checking the digitized version of the
-   calo jet emulator.
+   This repo is for running the Phase-2 calo emulator, in particular comparing the new, firmware-based emulator
+   that is also digitized against the old emulator.
 
 ## Prerequisites to Running
 
@@ -41,24 +41,28 @@
    cd ../
    git remote add digi-repo https://github.com/rpsimeon34/cmssw.git
    git fetch digi-repo
-   git checkout -b digi-branch --track digi-repo/from-CMSSW_15_0_0_pre3-QuickDigi
+   git checkout -b digi-branch --track digi-repo/from-CMSSW_15_0_0_pre3
    git checkout digi-branch
    git pull
    scram b -j 12
    ```
 
-## To run the emulator and create ntuples for the event display, efficiency plots
+## To run the emulator and create ntuples
 
-   For getting the ntuple:
+   For getting the ntuple of the new emulator's cluster outputs:
    ```
    cd L1Trigger/L1CaloPhase2Analyzer/test/
    cmsRun test-analyzer.py
    ```
-   To generate plots showing the difference between digitized and non-digitized jet attributes, run the
+   To get the ntuple of the old emulator's cluster outputs (in the same directory):
+   ```
+   cmsRun test-old-analyzer.py
+   ```
+   To generate plots showing the difference between the clusters from the new and old emulators, run the
    following. Note that this script requires packages not included by default in the above-named container
    image:
    ```
-   python3 plot_diff.py
+   python3 compare_old_new.py
    ```
 
    The remainder of this README.md is leftover from the source repository - it is not guaranteed to work here.
