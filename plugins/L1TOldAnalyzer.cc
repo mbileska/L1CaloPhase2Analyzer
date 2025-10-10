@@ -130,8 +130,8 @@ void L1TOldAnalyzer::analyze( const Event& evt, const EventSetup& es )
     for(const auto & t : *rctTowers){
       tower_ecal_et->push_back(t.ecalTowerEt());
       tower_hcal_et->push_back(t.hcalTowerEt());
-      tower_eta->push_back(t.towerEta());
-      tower_phi->push_back(t.towerPhi());
+      tower_eta->push_back(t.towerIEta());
+      tower_phi->push_back(t.towerIPhi());
     }
   }
 
