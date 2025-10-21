@@ -24,7 +24,8 @@
    unset SCRAM_ARCH
    source /cvmfs/cms.cern.ch/cmsset_default.sh
    ```
-   Then, before proceeding, run `./shell` in the command line. This must be done every time before using the
+   If you've put the `singularity` commands into a file called `shell`, then, before proceeding, run
+   `./shell` in the command line. This must be done every time before using the
    code in this repository. Note that you can run `exit` to exit the container.
 
 ## Setup (do only once)
@@ -35,6 +36,7 @@
    cmsenv
    git cms-init
    git cms-addpkg L1Trigger/L1TCalorimeter
+   git cms-addpkg L1Trigger/L1CaloTrigger
    git cms-addpkg DataFormats/L1TCalorimeterPhase2
    cd L1Trigger
    git clone https://github.com/rpsimeon34/L1CaloPhase2Analyzer.git -b 15_0_0_pre3_calojet
@@ -42,7 +44,6 @@
    git remote add digi-repo https://github.com/rpsimeon34/cmssw.git
    git fetch digi-repo
    git checkout -b digi-branch --track digi-repo/from-CMSSW_15_0_0_pre3
-   git checkout digi-branch
    git pull
    scram b -j 12
    ```
