@@ -10,6 +10,8 @@ import uproot
 NEW_PATH = "analyzer.root"
 OLD_PATH = "old_analyzer.root"
 
+TOWER_DIFF_MIN_ENERGY = 1.5 #min. energy to compare towers
+
 ECAL_ETA_RANGE = 1.4841
 HCAL_ETA_RANGE = 1.3968
 CRYSTAL_SIZE_ETA = ECAL_ETA_RANGE/85 #85 crystals per card
@@ -170,6 +172,18 @@ def compare_towers(old_tree,new_tree):
     old_et = old_ecal_et + old_hcal_et
     old_hoe = old_hcal_et/old_et
 
+    #Eliminate towers with energy below X GeV
+    new_filt = new_et > TOWER_DIFF_MIN_ENERGY
+    new_et = new_et[new_filt]
+    new_eta = new_eta[new_filt]
+    new_phi = new_phi[new_filt]
+    new_hoe = new_hoe[new_filt]
+    old_filt = old_et > TOWER_DIFF_MIN_ENERGY
+    old_et = old_et[old_filt]
+    old_eta = old_eta[old_filt]
+    old_phi = old_phi[old_filt]
+    old_hoe = old_hoe[old_filt]
+
     #Convert new emulator coordinates from relative to card to global
     new_eta = convert_tower_global_iEta(new_eta)
     new_phi = convert_tower_global_iPhi(new_phi)
@@ -319,8 +333,8 @@ def main():
     plot(new_phi_hist,"plots/new_phi.png",r"New $\phi$",xlabel=r"$\phi$")
     plot(old_phi_hist,"plots/old_phi.png",r"Old $\phi$",xlabel=r"$\phi$")
 
-    plot(tower_et_hist,"plots/tower_et_diff.png",r"Tower $E_T$ Relative Difference",xlabel=r"$E_T$ Rel. Diff. [GeV]")
-    plot(tower_hoe_hist,"plots/tower_hoe_diff.png",r"Tower HOE Difference",xlabel="HOE Diff.")
+    plot(tower_et_hist,"plots/tower_et_diff.png",rf"Tower $E_T$ Relative Difference (E > {TOWER_DIFF_MIN_ENERGY} GeV)",xlabel=r"$E_T$ Rel. Diff. [GeV]")
+    plot(tower_hoe_hist,"plots/tower_hoe_diff.png",rf"Tower HOE Difference (E > {TOWER_DIFF_MIN_ENERGY} GeV)",xlabel="HOE Diff.")
     
     plot(new_tower_et_hist,"plots/new_tower_et.png",r"New $E_T$",xlabel=r"$E_T$ [GeV]")
     plot(old_tower_et_hist,"plots/old_tower_et.png",r"Old $E_T$",xlabel=r"$E_T$ [GeV]")

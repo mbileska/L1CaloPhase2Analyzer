@@ -3,8 +3,8 @@ import FWCore.ParameterSet.Config as cms
 
 l1NtupleProducer = cms.EDAnalyzer("L1TCaloAnalyzer",
                                   folderName = cms.untracked.string("firstFolder"),
-                                  link0 = cms.InputTag("l1tPhase2RCTEmulatorProducer", "LinkOut0"),
-                                  link1 = cms.InputTag("l1tPhase2RCTEmulatorProducer", "LinkOut1"),
-                                  link2 = cms.InputTag("l1tPhase2RCTEmulatorProducer", "LinkOut2"),
-                                  link3 = cms.InputTag("l1tPhase2RCTEmulatorProducer", "LinkOut3"),
+                                  LinkOut0 = cms.InputTag("l1tPhase2RCTEmulatorProducer", "LinkOut0"),
+                                  LinkOut1 = cms.InputTag("l1tPhase2RCTEmulatorProducer", "LinkOut1"),
+                                  LinkOut2 = cms.InputTag("l1tPhase2RCTEmulatorProducer", "LinkOut2"),
+                                  LinkOut3 = cms.InputTag("l1tPhase2RCTEmulatorProducer", "LinkOut3"),
 )
