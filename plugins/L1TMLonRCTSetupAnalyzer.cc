@@ -1,6 +1,6 @@
 /*
- *  \file L1TMLonRCTSetup.cc
- *  Authors S. Kwan, P. Das, I. Ojalvo, R. Simeon
+ *  \file L1TMLonRCTSetupAnalyzer.cc
+ *  Author R. Simeon
  */
 
 // system include files
@@ -54,7 +54,7 @@
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
-#include "L1Trigger/L1CaloPhase2Analyzer/interface/L1TMLonRCTSetup.h"
+#include "L1Trigger/L1CaloPhase2Analyzer/interface/L1TMLonRCTSetupAnalyzer.h"
 #include "DataFormats/Math/interface/deltaR.h"
 
 
@@ -66,7 +66,7 @@
 
 using namespace edm;
 
-L1TMLonRCTSetup::L1TMLonRCTSetup( const ParameterSet & cfg ) :
+L1TMLonRCTSetupAnalyzer::L1TMLonRCTSetupAnalyzer( const ParameterSet & cfg ) :
   decoderToken_(esConsumes<CaloTPGTranscoder, CaloTPGRecord>(edm::ESInputTag("", ""))),
   caloGeometryToken_(esConsumes<CaloGeometry, CaloGeometryRecord>(edm::ESInputTag("", ""))),
   hbTopologyToken_(esConsumes<HcalTopology, HcalRecNumberingRecord>(edm::ESInputTag("", ""))),
@@ -141,19 +141,28 @@ L1TMLonRCTSetup::L1TMLonRCTSetup( const ParameterSet & cfg ) :
     linkTree->Branch("SLR0_cluster_brems", "vector<vector<int>>", &SLR0_cluster_brems, 32000, 0);
     linkTree->Branch("SLR0_cluster_spare", "vector<vector<int>>", &SLR0_cluster_spare, 32000, 0);
 
-    // Tower branches FIXME: Change to HCAL branches
-    linkTree->Branch("tower_et", "vector<vector<int>>", &tower_et, 32000, 0);
-    linkTree->Branch("tower_eta", "vector<vector<int>>", &tower_eta, 32000, 0);
-    linkTree->Branch("tower_phi", "vector<vector<int>>", &tower_phi, 32000, 0);
-    linkTree->Branch("tower_hoe", "vector<vector<int>>", &hoe, 32000, 0);
-    linkTree->Branch("tower_fb", "vector<vector<int>>", &fb, 32000, 0);
+    // HCAL link 8 tower branches
+    linkTree->Branch("HCAL8_tower_et", "vector<vector<int>>", &HCAL8_tower_et, 32000, 0);
+    linkTree->Branch("HCAL8_tower_fb", "vector<vector<int>>", &HCAL8_tower_fb, 32000, 0);
+
+    // HCAL link 7 tower branches
+    linkTree->Branch("HCAL7_tower_et", "vector<vector<int>>", &HCAL7_tower_et, 32000, 0);
+    linkTree->Branch("HCAL7_tower_fb", "vector<vector<int>>", &HCAL7_tower_fb, 32000, 0);
+
+    // HCAL link 6 tower branches
+    linkTree->Branch("HCAL6_tower_et", "vector<vector<int>>", &HCAL6_tower_et, 32000, 0);
+    linkTree->Branch("HCAL6_tower_fb", "vector<vector<int>>", &HCAL6_tower_fb, 32000, 0);
+
+    // HCAL link 5 tower branches
+    linkTree->Branch("HCAL5_tower_et", "vector<vector<int>>", &HCAL5_tower_et, 32000, 0);
+    linkTree->Branch("HCAL5_tower_fb", "vector<vector<int>>", &HCAL5_tower_fb, 32000, 0);
 
   }
 
-void L1TMLonRCTSetup::beginJob( const EventSetup & es) {
+void L1TMLonRCTSetupAnalyzer::beginJob( const EventSetup & es) {
 }
 
-void L1TMLonRCTSetup::analyze( const Event& evt, const EventSetup& es )
+void L1TMLonRCTSetupAnalyzer::analyze( const Event& evt, const EventSetup& es )
  {
 
   run = evt.id().run();
@@ -165,7 +174,10 @@ void L1TMLonRCTSetup::analyze( const Event& evt, const EventSetup& es )
   edm::Handle<l1tp2::rctOutputLinkCollection> EGammaSLR2_link;
   edm::Handle<l1tp2::rctOutputLinkCollection> EGammaSLR1_link;
   edm::Handle<l1tp2::rctOutputLinkCollection> EGammaSLR0_link;
-  // FIXME: Add HCAL input links
+  edm::Handle<l1tp2::rctOutputLinkCollection> HCAL8_link;
+  edm::Handle<l1tp2::rctOutputLinkCollection> HCAL7_link;
+  edm::Handle<l1tp2::rctOutputLinkCollection> HCAL6_link;
+  edm::Handle<l1tp2::rctOutputLinkCollection> HCAL5_link;
 
   // Clear cluster vectors
   // SLR3
@@ -217,7 +229,19 @@ void L1TMLonRCTSetup::analyze( const Event& evt, const EventSetup& es )
   SLR0_cluster_brems->clear();
   SLR0_cluster_spare->clear();
 
-  // FIXME: Clear HCAL vectors
+  // Clear HCAL vectors
+  // HCAL link 8
+  HCAL8_tower_et->clear();
+  HCAL8_tower_fb->clear();
+  // HCAL link 7
+  HCAL7_tower_et->clear();
+  HCAL7_tower_fb->clear();
+  // HCAL link 6
+  HCAL6_tower_et->clear();
+  HCAL6_tower_fb->clear();
+  // HCAL link 5
+  HCAL5_tower_et->clear();
+  HCAL5_tower_fb->clear();
 
   // Read out SLR3 EGamma clusters
   if(evt.getByToken(EGammaSLR3Src_, EGammaSLR3_link)){
@@ -345,66 +369,55 @@ void L1TMLonRCTSetup::analyze( const Event& evt, const EventSetup& es )
   }
 
   // FIXME: Write out HCAL TPs
-  if(evt.getByToken(link1Src_, linkOut1_int576)){
-    for(const auto & link : *linkOut1_int576){
-      linkOut1->push_back((int)link.data());
+  if(evt.getByToken(HCAL8Src_, HCAL8_link)){
+    for(const auto & link : *HCAL8_link){
 
-      getIP3OutputTowers(
+      getHCALTowers(
         link.data(),
-        1,
         RCT_tower_et,
-        RCT_tower_eta,
-        RCT_tower_phi,
-        RCT_hoe,
-        RCT_fb
+        RCT_tower_fb
       );
-      tower_et->push_back(*RCT_tower_et);
-      tower_eta->push_back(*RCT_tower_eta);
-      tower_phi->push_back(*RCT_tower_phi);
-      hoe->push_back(*RCT_hoe);
-      fb->push_back(*RCT_fb);
+      HCAL8_tower_et->push_back(*RCT_tower_et);
+      HCAL8_tower_fb->push_back(*RCT_tower_fb);
     }
   }
 
-  if(evt.getByToken(link2Src_, linkOut2_int576)){
-    for(const auto & link : *linkOut2_int576){
-      linkOut2->push_back((int)link.data());
+  if(evt.getByToken(HCAL7Src_, HCAL7_link)){
+    for(const auto & link : *HCAL7_link){
 
-      getIP3OutputTowers(
+      getHCALTowers(
         link.data(),
-        2,
         RCT_tower_et,
-        RCT_tower_eta,
-        RCT_tower_phi,
-        RCT_hoe,
-        RCT_fb
+        RCT_tower_fb
       );
-      tower_et->push_back(*RCT_tower_et);
-      tower_eta->push_back(*RCT_tower_eta);
-      tower_phi->push_back(*RCT_tower_phi);
-      hoe->push_back(*RCT_hoe);
-      fb->push_back(*RCT_fb);
+      HCAL7_tower_et->push_back(*RCT_tower_et);
+      HCAL7_tower_fb->push_back(*RCT_tower_fb);
     }
   }
 
-  if(evt.getByToken(link3Src_, linkOut3_int576)){
-    for(const auto & link : *linkOut3_int576){
-      linkOut3->push_back((int)link.data());
+  if(evt.getByToken(HCAL6Src_, HCAL6_link)){
+    for(const auto & link : *HCAL6_link){
 
-      getIP3OutputTowers(
+      getHCALTowers(
         link.data(),
-        3,
         RCT_tower_et,
-        RCT_tower_eta,
-        RCT_tower_phi,
-        RCT_hoe,
-        RCT_fb
+        RCT_tower_fb
       );
-      tower_et->push_back(*RCT_tower_et);
-      tower_eta->push_back(*RCT_tower_eta);
-      tower_phi->push_back(*RCT_tower_phi);
-      hoe->push_back(*RCT_hoe);
-      fb->push_back(*RCT_fb);
+      HCAL6_tower_et->push_back(*RCT_tower_et);
+      HCAL6_tower_fb->push_back(*RCT_tower_fb);
+    }
+  }
+
+  if(evt.getByToken(HCAL5Src_, HCAL5_link)){
+    for(const auto & link : *HCAL5_link){
+
+      getHCALTowers(
+        link.data(),
+        RCT_tower_et,
+        RCT_tower_fb
+      );
+      HCAL5_tower_et->push_back(*RCT_tower_et);
+      HCAL5_tower_fb->push_back(*RCT_tower_fb);
     }
   }
 
@@ -413,10 +426,10 @@ void L1TMLonRCTSetup::analyze( const Event& evt, const EventSetup& es )
  }
 
 
-void L1TMLonRCTSetup::endJob() {
+void L1TMLonRCTSetupAnalyzer::endJob() {
 }
 
-L1TMLonRCTSetup::~L1TMLonRCTSetup(){
+L1TMLonRCTSetupAnalyzer::~L1TMLonRCTSetupAnalyzer(){
 }
 
 //////////////////////////// Utility functions ///////////////////////////////
@@ -477,54 +490,28 @@ void getEGammaClusters(
 }
 
 // FIXME: Replace with a function that gets HCAL TP info
-void getIP3OutputTowers(
+void getHCALTowers(
   ap_uint<576> Data,
-  int whichLink,
   std::vector<int>* RCT_et,
-  std::vector<int>* RCT_eta,
-  std::vector<int>* RCT_phi,
-  std::vector<int>* RCT_hoe,
   std::vector<int>* RCT_fb
 ) {
 
   int this_et;
-  int this_hoe;
   int this_fb;
 
   RCT_et->clear();
-  RCT_eta->clear();
-  RCT_phi->clear();
-  RCT_hoe->clear();
   RCT_fb->clear();
 
-  for(int i=0; i<17; i++) {
+  for(int i=0; i<32; i++) {
     // Lower iPhi in this link
-    int this_phi = (whichLink - 1)*2;
     int start = i*16;
 
     this_et = (int)Data.range(start+9,start);
     RCT_et->push_back(this_et);
-    RCT_eta->push_back(i);
-    RCT_phi->push_back(this_phi);
-    this_hoe = (int)Data.range(start+13,start+10);
-    RCT_hoe->push_back(this_hoe);
-    this_fb = (int)Data.range(start+15,start+14);
-    RCT_fb->push_back(this_fb);
-
-    // Higher iPhi in this link
-    this_phi = (whichLink - 1)*2 + 1;
-    start = i*16 + 272;
-    
-    this_et = (int)Data.range(start+9,start);
-    RCT_et->push_back(this_et);
-    RCT_eta->push_back(i);
-    RCT_phi->push_back(this_phi);
-    this_hoe = (int)Data.range(start+13,start+10);
-    RCT_hoe->push_back(this_hoe);
-    this_fb = (int)Data.range(start+15,start+14);
+    this_fb = (int)Data.range(start+15,start+10);
     RCT_fb->push_back(this_fb);
   }
 
 }
 
-DEFINE_FWK_MODULE(L1TMLonRCTSetup);
+DEFINE_FWK_MODULE(L1TMLonRCTSetupAnalyzer);
