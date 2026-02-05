@@ -1,5 +1,5 @@
-#ifndef L1TCaloAnalyzer_H
-#define L1TCaloAnalyzer_H
+#ifndef L1TMLonRCTSetupAnalyzer_H
+#define L1TMLonRCTSetupAnalyzer_H
 
 
 // system include files
@@ -82,62 +82,96 @@
 //
 using std::vector;
 
-class L1TCaloAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
+class L1TMLonRCTSetupAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 
  public:
   
   // Constructor
-  L1TCaloAnalyzer(const edm::ParameterSet& ps);
+  L1TMLonRCTSetupAnalyzer(const edm::ParameterSet& ps);
   
   // Destructor
-  virtual ~L1TCaloAnalyzer();
+  virtual ~L1TMLonRCTSetupAnalyzer();
 
   edm::Service<TFileService> tfs_;
 
-  std::vector<int> *linkOut0 = new std::vector<int>;
-  std::vector<int> *linkOut1 = new std::vector<int>;
-  std::vector<int> *linkOut2 = new std::vector<int>;
-  std::vector<int> *linkOut3 = new std::vector<int>;
-
   // Vectors of vectors, where each element is a per-card vector
-  // Cluster branches
-  std::vector<std::vector<int>> *seed_pt = new std::vector<std::vector<int>>;
-  std::vector<std::vector<int>> *cluster_pt = new std::vector<std::vector<int>>;
-  std::vector<std::vector<int>> *cluster_eta = new std::vector<std::vector<int>>;
-  std::vector<std::vector<int>> *cluster_phi = new std::vector<std::vector<int>>;
-  std::vector<std::vector<int>> *et5x5 = new std::vector<std::vector<int>>;
-  std::vector<std::vector<int>> *wps = new std::vector<std::vector<int>>;
-  std::vector<std::vector<int>> *timing = new std::vector<std::vector<int>>;
-  std::vector<std::vector<int>> *spike = new std::vector<std::vector<int>>;
-  std::vector<std::vector<int>> *satur = new std::vector<std::vector<int>>;
-  std::vector<std::vector<int>> *brems = new std::vector<std::vector<int>>;
-  std::vector<std::vector<int>> *spare = new std::vector<std::vector<int>>;
-  // Tower branches
-  std::vector<std::vector<int>> *tower_et = new std::vector<std::vector<int>>;
-  std::vector<std::vector<int>> *tower_eta = new std::vector<std::vector<int>>;
-  std::vector<std::vector<int>> *tower_phi = new std::vector<std::vector<int>>;
-  std::vector<std::vector<int>> *hoe = new std::vector<std::vector<int>>;
-  std::vector<std::vector<int>> *fb = new std::vector<std::vector<int>>;
+  // Cluster branches SLR3
+  std::vector<std::vector<int>> *SLR3_cluster_seed_energy = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR3_cluster_energy = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR3_cluster_eta = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR3_cluster_phi = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR3_cluster_et5x5 = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR3_cluster_et2x5 = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR3_cluster_timing = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR3_cluster_spike = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR3_cluster_satur = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR3_cluster_brems = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR3_cluster_spare = new std::vector<std::vector<int>>;
+  // Cluster branches SLR2
+  std::vector<std::vector<int>> *SLR2_cluster_seed_energy = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR2_cluster_energy = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR2_cluster_eta = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR2_cluster_phi = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR2_cluster_et5x5 = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR2_cluster_et2x5 = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR2_cluster_timing = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR2_cluster_spike = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR2_cluster_satur = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR2_cluster_brems = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR2_cluster_spare = new std::vector<std::vector<int>>;
+  // Cluster branches SLR1
+  std::vector<std::vector<int>> *SLR1_cluster_seed_energy = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR1_cluster_energy = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR1_cluster_eta = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR1_cluster_phi = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR1_cluster_et5x5 = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR1_cluster_et2x5 = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR1_cluster_timing = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR1_cluster_spike = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR1_cluster_satur = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR1_cluster_brems = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR1_cluster_spare = new std::vector<std::vector<int>>;
+  // Cluster branches SLR0
+  std::vector<std::vector<int>> *SLR0_cluster_seed_energy = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR0_cluster_energy = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR0_cluster_eta = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR0_cluster_phi = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR0_cluster_et5x5 = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR0_cluster_et2x5 = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR0_cluster_timing = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR0_cluster_spike = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR0_cluster_satur = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR0_cluster_brems = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *SLR0_cluster_spare = new std::vector<std::vector<int>>;
+  // HCAL tower branches link 8
+  std::vector<std::vector<int>> *HCAL8_tower_et = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *HCAL8_tower_fb = new std::vector<std::vector<int>>;
+  // HCAL tower branches link 7
+  std::vector<std::vector<int>> *HCAL7_tower_et = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *HCAL7_tower_fb = new std::vector<std::vector<int>>;
+  // HCAL tower branches link 6
+  std::vector<std::vector<int>> *HCAL6_tower_et = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *HCAL6_tower_fb = new std::vector<std::vector<int>>;
+  // HCAL tower branches link 5
+  std::vector<std::vector<int>> *HCAL5_tower_et = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *HCAL5_tower_fb = new std::vector<std::vector<int>>;
 
   // Per-card vectors (clusters)
-  std::vector<int> *RCT_seed_pt = new std::vector<int>;
-  std::vector<int> *RCT_cluster_pt = new std::vector<int>;
+  std::vector<int> *RCT_cluster_seed_energy = new std::vector<int>;
+  std::vector<int> *RCT_cluster_energy = new std::vector<int>;
   std::vector<int> *RCT_cluster_eta = new std::vector<int>;
   std::vector<int> *RCT_cluster_phi = new std::vector<int>;
-  std::vector<int> *RCT_et5x5 = new std::vector<int>;
-  std::vector<int> *RCT_wps = new std::vector<int>;
-  std::vector<int> *RCT_timing = new std::vector<int>;
-  std::vector<int> *RCT_spike = new std::vector<int>;
-  std::vector<int> *RCT_satur = new std::vector<int>;
-  std::vector<int> *RCT_brems = new std::vector<int>;
-  std::vector<int> *RCT_spare = new std::vector<int>;
+  std::vector<int> *RCT_cluster_et5x5 = new std::vector<int>;
+  std::vector<int> *RCT_cluster_et2x5 = new std::vector<int>;
+  std::vector<int> *RCT_cluster_timing = new std::vector<int>;
+  std::vector<int> *RCT_cluster_spike = new std::vector<int>;
+  std::vector<int> *RCT_cluster_satur = new std::vector<int>;
+  std::vector<int> *RCT_cluster_brems = new std::vector<int>;
+  std::vector<int> *RCT_cluster_spare = new std::vector<int>;
 
   // Per-card vectors (towers)
   std::vector<int> *RCT_tower_et = new std::vector<int>;
-  std::vector<int> *RCT_tower_eta = new std::vector<int>;
-  std::vector<int> *RCT_tower_phi = new std::vector<int>;
-  std::vector<int> *RCT_hoe = new std::vector<int>;
-  std::vector<int> *RCT_fb = new std::vector<int>;
+  std::vector<int> *RCT_tower_fb = new std::vector<int>;
 
   TTree* linkTree;
 
@@ -162,23 +196,27 @@ class L1TCaloAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
   edm::ESGetToken<CaloGeometry, CaloGeometryRecord> caloGeometryToken_;
   edm::ESGetToken<HcalTopology, HcalRecNumberingRecord> hbTopologyToken_;
 
-  edm::EDGetTokenT<l1tp2::rctOutputLinkCollection> link0Src_;
-  edm::EDGetTokenT<l1tp2::rctOutputLinkCollection> link1Src_;
-  edm::EDGetTokenT<l1tp2::rctOutputLinkCollection> link2Src_;
-  edm::EDGetTokenT<l1tp2::rctOutputLinkCollection> link3Src_;
+  edm::EDGetTokenT<l1tp2::rctOutputLinkCollection> EGammaSLR3Src_;
+  edm::EDGetTokenT<l1tp2::rctOutputLinkCollection> EGammaSLR2Src_;
+  edm::EDGetTokenT<l1tp2::rctOutputLinkCollection> EGammaSLR1Src_;
+  edm::EDGetTokenT<l1tp2::rctOutputLinkCollection> EGammaSLR0Src_;
+  edm::EDGetTokenT<l1tp2::rctOutputLinkCollection> HCAL8Src_;
+  edm::EDGetTokenT<l1tp2::rctOutputLinkCollection> HCAL7Src_;
+  edm::EDGetTokenT<l1tp2::rctOutputLinkCollection> HCAL6Src_;
+  edm::EDGetTokenT<l1tp2::rctOutputLinkCollection> HCAL5Src_;
 
   std::string folderName_;
 
 };
 
-void getIP3OutputClusters(
+void getEGammaClusters(
   ap_uint<576> Data,
-  std::vector<int>* RCT_seed_pt,
-  std::vector<int>* RCT_pt,
+  std::vector<int>* RCT_seed_energy,
+  std::vector<int>* RCT_energy,
   std::vector<int>* RCT_eta,
   std::vector<int>* RCT_phi,
   std::vector<int>* RCT_et5x5,
-  std::vector<int>* RCT_wps,
+  std::vector<int>* RCT_et2x5,
   std::vector<int>* RCT_timing,
   std::vector<int>* RCT_spike,
   std::vector<int>* RCT_satur,
@@ -186,13 +224,9 @@ void getIP3OutputClusters(
   std::vector<int>* RCT_spare
 );
 
-void getIP3OutputTowers(
+void getHCALTowers(
   ap_uint<576> Data,
-  int whichLink,
   std::vector<int>* RCT_et,
-  std::vector<int>* RCT_eta,
-  std::vector<int>* RCT_phi,
-  std::vector<int>* RCT_hoe,
   std::vector<int>* RCT_fb
 );
 
