@@ -48,7 +48,7 @@ process.RCT = cms.Path( process.l1tPhase2MLonRCTSetupProducer*process.l1NtuplePr
 
 # output file
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string('analyzer_noClusters.root')
+    fileName = cms.string('MLonRCT_features.root')
 )
 
 process.schedule = cms.Schedule(process.RCT)

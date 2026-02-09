@@ -143,17 +143,49 @@ class L1TMLonRCTSetupAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedReso
   std::vector<std::vector<int>> *SLR0_cluster_satur = new std::vector<std::vector<int>>;
   std::vector<std::vector<int>> *SLR0_cluster_brems = new std::vector<std::vector<int>>;
   std::vector<std::vector<int>> *SLR0_cluster_spare = new std::vector<std::vector<int>>;
+  // ECAL unclustered energy tower branches SLR3
+  std::vector<std::vector<int>> *ECALUnclusteredSLR3_tower_et = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *ECALUnclusteredSLR3_tower_eta = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *ECALUnclusteredSLR3_tower_phi = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *ECALUnclusteredSLR3_tower_timing = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *ECALUnclusteredSLR3_tower_spike = new std::vector<std::vector<int>>;
+  // ECAL unclustered energy tower branches SLR2
+  std::vector<std::vector<int>> *ECALUnclusteredSLR2_tower_et = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *ECALUnclusteredSLR2_tower_eta = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *ECALUnclusteredSLR2_tower_phi = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *ECALUnclusteredSLR2_tower_timing = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *ECALUnclusteredSLR2_tower_spike = new std::vector<std::vector<int>>;
+  // ECAL unclustered energy tower branches SLR1
+  std::vector<std::vector<int>> *ECALUnclusteredSLR1_tower_et = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *ECALUnclusteredSLR1_tower_eta = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *ECALUnclusteredSLR1_tower_phi = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *ECALUnclusteredSLR1_tower_timing = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *ECALUnclusteredSLR1_tower_spike = new std::vector<std::vector<int>>;
+  // ECAL unclustered energy tower branches SLR0
+  std::vector<std::vector<int>> *ECALUnclusteredSLR0_tower_et = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *ECALUnclusteredSLR0_tower_eta = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *ECALUnclusteredSLR0_tower_phi = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *ECALUnclusteredSLR0_tower_timing = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *ECALUnclusteredSLR0_tower_spike = new std::vector<std::vector<int>>;
   // HCAL tower branches link 8
   std::vector<std::vector<int>> *HCAL8_tower_et = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *HCAL8_tower_eta = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *HCAL8_tower_phi = new std::vector<std::vector<int>>;
   std::vector<std::vector<int>> *HCAL8_tower_fb = new std::vector<std::vector<int>>;
   // HCAL tower branches link 7
   std::vector<std::vector<int>> *HCAL7_tower_et = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *HCAL7_tower_eta = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *HCAL7_tower_phi = new std::vector<std::vector<int>>;
   std::vector<std::vector<int>> *HCAL7_tower_fb = new std::vector<std::vector<int>>;
   // HCAL tower branches link 6
   std::vector<std::vector<int>> *HCAL6_tower_et = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *HCAL6_tower_eta = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *HCAL6_tower_phi = new std::vector<std::vector<int>>;
   std::vector<std::vector<int>> *HCAL6_tower_fb = new std::vector<std::vector<int>>;
   // HCAL tower branches link 5
   std::vector<std::vector<int>> *HCAL5_tower_et = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *HCAL5_tower_eta = new std::vector<std::vector<int>>;
+  std::vector<std::vector<int>> *HCAL5_tower_phi = new std::vector<std::vector<int>>;
   std::vector<std::vector<int>> *HCAL5_tower_fb = new std::vector<std::vector<int>>;
 
   // Per-card vectors (clusters)
@@ -169,9 +201,18 @@ class L1TMLonRCTSetupAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedReso
   std::vector<int> *RCT_cluster_brems = new std::vector<int>;
   std::vector<int> *RCT_cluster_spare = new std::vector<int>;
 
-  // Per-card vectors (towers)
-  std::vector<int> *RCT_tower_et = new std::vector<int>;
-  std::vector<int> *RCT_tower_fb = new std::vector<int>;
+  // Per-card vectors (ECAL towers)
+  std::vector<int> *RCT_ECAL_tower_et = new std::vector<int>;
+  std::vector<int> *RCT_ECAL_tower_eta = new std::vector<int>;
+  std::vector<int> *RCT_ECAL_tower_phi = new std::vector<int>;
+  std::vector<int> *RCT_ECAL_tower_timing = new std::vector<int>;
+  std::vector<int> *RCT_ECAL_tower_spike = new std::vector<int>;
+
+  // Per-card vectors (HCAL towers)
+  std::vector<int> *RCT_HCAL_tower_et = new std::vector<int>;
+  std::vector<int> *RCT_HCAL_tower_eta = new std::vector<int>;
+  std::vector<int> *RCT_HCAL_tower_phi = new std::vector<int>;
+  std::vector<int> *RCT_HCAL_tower_fb = new std::vector<int>;
 
   TTree* linkTree;
 
@@ -200,6 +241,10 @@ class L1TMLonRCTSetupAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedReso
   edm::EDGetTokenT<l1tp2::rctOutputLinkCollection> EGammaSLR2Src_;
   edm::EDGetTokenT<l1tp2::rctOutputLinkCollection> EGammaSLR1Src_;
   edm::EDGetTokenT<l1tp2::rctOutputLinkCollection> EGammaSLR0Src_;
+  edm::EDGetTokenT<l1tp2::rctOutputLinkCollection> ECALUnclusteredSLR3Src_;
+  edm::EDGetTokenT<l1tp2::rctOutputLinkCollection> ECALUnclusteredSLR2Src_;
+  edm::EDGetTokenT<l1tp2::rctOutputLinkCollection> ECALUnclusteredSLR1Src_;
+  edm::EDGetTokenT<l1tp2::rctOutputLinkCollection> ECALUnclusteredSLR0Src_;
   edm::EDGetTokenT<l1tp2::rctOutputLinkCollection> HCAL8Src_;
   edm::EDGetTokenT<l1tp2::rctOutputLinkCollection> HCAL7Src_;
   edm::EDGetTokenT<l1tp2::rctOutputLinkCollection> HCAL6Src_;
@@ -224,9 +269,23 @@ void getEGammaClusters(
   std::vector<int>* RCT_spare
 );
 
+void getECALUnclusteredEnergy(
+  ap_uint<576> Data,
+  int nTowers,
+  std::vector<int>* RCT_et,
+  std::vector<int>* RCT_eta,
+  std::vector<int>* RCT_phi,
+  std::vector<int>* RCT_timing,
+  std::vector<int>* RCT_spike
+);
+
 void getHCALTowers(
   ap_uint<576> Data,
+  bool secondhalfstarts,
+  int nLink,
   std::vector<int>* RCT_et,
+  std::vector<int>* RCT_eta,
+  std::vector<int>* RCT_phi,
   std::vector<int>* RCT_fb
 );
 
