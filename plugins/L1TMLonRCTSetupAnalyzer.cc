@@ -74,6 +74,10 @@ L1TMLonRCTSetupAnalyzer::L1TMLonRCTSetupAnalyzer( const ParameterSet & cfg ) :
   EGammaSLR2Src_(consumes<l1tp2::rctOutputLinkCollection>(cfg.getParameter<edm::InputTag>("EGammaSLR2"))),
   EGammaSLR1Src_(consumes<l1tp2::rctOutputLinkCollection>(cfg.getParameter<edm::InputTag>("EGammaSLR1"))),
   EGammaSLR0Src_(consumes<l1tp2::rctOutputLinkCollection>(cfg.getParameter<edm::InputTag>("EGammaSLR0"))),
+  ECALUnclusteredSLR3Src_ (consumes<l1tp2::rctOutputLinkCollection>(cfg.getParameter<edm::InputTag>("ECALUnclusteredSLR3"))),
+  ECALUnclusteredSLR2Src_ (consumes<l1tp2::rctOutputLinkCollection>(cfg.getParameter<edm::InputTag>("ECALUnclusteredSLR2"))),
+  ECALUnclusteredSLR1Src_ (consumes<l1tp2::rctOutputLinkCollection>(cfg.getParameter<edm::InputTag>("ECALUnclusteredSLR1"))),
+  ECALUnclusteredSLR0Src_ (consumes<l1tp2::rctOutputLinkCollection>(cfg.getParameter<edm::InputTag>("ECALUnclusteredSLR0"))),
   HCAL8Src_(consumes<l1tp2::rctOutputLinkCollection>(cfg.getParameter<edm::InputTag>("HCAL8"))),
   HCAL7Src_(consumes<l1tp2::rctOutputLinkCollection>(cfg.getParameter<edm::InputTag>("HCAL7"))),
   HCAL6Src_(consumes<l1tp2::rctOutputLinkCollection>(cfg.getParameter<edm::InputTag>("HCAL6"))),
@@ -141,20 +145,56 @@ L1TMLonRCTSetupAnalyzer::L1TMLonRCTSetupAnalyzer( const ParameterSet & cfg ) :
     linkTree->Branch("SLR0_cluster_brems", "vector<vector<int>>", &SLR0_cluster_brems, 32000, 0);
     linkTree->Branch("SLR0_cluster_spare", "vector<vector<int>>", &SLR0_cluster_spare, 32000, 0);
 
+    // ECAL unclustered energy tower branches SLR3
+    linkTree->Branch("ECALUnclusteredSLR3_tower_et", "vector<vector<int>>", &ECALUnclusteredSLR3_tower_et, 32000, 0);
+    linkTree->Branch("ECALUnclusteredSLR3_tower_eta", "vector<vector<int>>", &ECALUnclusteredSLR3_tower_eta, 32000, 0);
+    linkTree->Branch("ECALUnclusteredSLR3_tower_phi", "vector<vector<int>>", &ECALUnclusteredSLR3_tower_phi, 32000, 0);
+    linkTree->Branch("ECALUnclusteredSLR3_tower_timing", "vector<vector<int>>", &ECALUnclusteredSLR3_tower_timing, 32000, 0);
+    linkTree->Branch("ECALUnclusteredSLR3_tower_spike", "vector<vector<int>>", &ECALUnclusteredSLR3_tower_spike, 32000, 0);
+
+    // ECAL unclustered energy tower branches SLR2
+    linkTree->Branch("ECALUnclusteredSLR2_tower_et", "vector<vector<int>>", &ECALUnclusteredSLR2_tower_et, 32000, 0);
+    linkTree->Branch("ECALUnclusteredSLR2_tower_eta", "vector<vector<int>>", &ECALUnclusteredSLR2_tower_eta, 32000, 0);
+    linkTree->Branch("ECALUnclusteredSLR2_tower_phi", "vector<vector<int>>", &ECALUnclusteredSLR2_tower_phi, 32000, 0);
+    linkTree->Branch("ECALUnclusteredSLR2_tower_timing", "vector<vector<int>>", &ECALUnclusteredSLR2_tower_timing, 32000, 0);
+    linkTree->Branch("ECALUnclusteredSLR2_tower_spike", "vector<vector<int>>", &ECALUnclusteredSLR2_tower_spike, 32000, 0);
+
+    // ECAL unclustered energy tower branches SLR1
+    linkTree->Branch("ECALUnclusteredSLR1_tower_et", "vector<vector<int>>", &ECALUnclusteredSLR1_tower_et, 32000, 0);
+    linkTree->Branch("ECALUnclusteredSLR1_tower_eta", "vector<vector<int>>", &ECALUnclusteredSLR1_tower_eta, 32000, 0);
+    linkTree->Branch("ECALUnclusteredSLR1_tower_phi", "vector<vector<int>>", &ECALUnclusteredSLR1_tower_phi, 32000, 0);
+    linkTree->Branch("ECALUnclusteredSLR1_tower_timing", "vector<vector<int>>", &ECALUnclusteredSLR1_tower_timing, 32000, 0);
+    linkTree->Branch("ECALUnclusteredSLR1_tower_spike", "vector<vector<int>>", &ECALUnclusteredSLR1_tower_spike, 32000, 0);
+
+    // ECAL unclustered energy tower branches SLR0
+    linkTree->Branch("ECALUnclusteredSLR0_tower_et", "vector<vector<int>>", &ECALUnclusteredSLR0_tower_et, 32000, 0);
+    linkTree->Branch("ECALUnclusteredSLR0_tower_eta", "vector<vector<int>>", &ECALUnclusteredSLR0_tower_eta, 32000, 0);
+    linkTree->Branch("ECALUnclusteredSLR0_tower_phi", "vector<vector<int>>", &ECALUnclusteredSLR0_tower_phi, 32000, 0);
+    linkTree->Branch("ECALUnclusteredSLR0_tower_timing", "vector<vector<int>>", &ECALUnclusteredSLR0_tower_timing, 32000, 0);
+    linkTree->Branch("ECALUnclusteredSLR0_tower_spike", "vector<vector<int>>", &ECALUnclusteredSLR0_tower_spike, 32000, 0);
+
     // HCAL link 8 tower branches
     linkTree->Branch("HCAL8_tower_et", "vector<vector<int>>", &HCAL8_tower_et, 32000, 0);
+    linkTree->Branch("HCAL8_tower_eta", "vector<vector<int>>", &HCAL8_tower_eta, 32000, 0);
+    linkTree->Branch("HCAL8_tower_phi", "vector<vector<int>>", &HCAL8_tower_phi, 32000, 0);
     linkTree->Branch("HCAL8_tower_fb", "vector<vector<int>>", &HCAL8_tower_fb, 32000, 0);
 
     // HCAL link 7 tower branches
     linkTree->Branch("HCAL7_tower_et", "vector<vector<int>>", &HCAL7_tower_et, 32000, 0);
+    linkTree->Branch("HCAL7_tower_eta", "vector<vector<int>>", &HCAL7_tower_eta, 32000, 0);
+    linkTree->Branch("HCAL7_tower_phi", "vector<vector<int>>", &HCAL7_tower_phi, 32000, 0);
     linkTree->Branch("HCAL7_tower_fb", "vector<vector<int>>", &HCAL7_tower_fb, 32000, 0);
 
     // HCAL link 6 tower branches
     linkTree->Branch("HCAL6_tower_et", "vector<vector<int>>", &HCAL6_tower_et, 32000, 0);
+    linkTree->Branch("HCAL6_tower_eta", "vector<vector<int>>", &HCAL6_tower_eta, 32000, 0);
+    linkTree->Branch("HCAL6_tower_phi", "vector<vector<int>>", &HCAL6_tower_phi, 32000, 0);
     linkTree->Branch("HCAL6_tower_fb", "vector<vector<int>>", &HCAL6_tower_fb, 32000, 0);
 
     // HCAL link 5 tower branches
     linkTree->Branch("HCAL5_tower_et", "vector<vector<int>>", &HCAL5_tower_et, 32000, 0);
+    linkTree->Branch("HCAL5_tower_eta", "vector<vector<int>>", &HCAL5_tower_eta, 32000, 0);
+    linkTree->Branch("HCAL5_tower_phi", "vector<vector<int>>", &HCAL5_tower_phi, 32000, 0);
     linkTree->Branch("HCAL5_tower_fb", "vector<vector<int>>", &HCAL5_tower_fb, 32000, 0);
 
   }
@@ -174,6 +214,10 @@ void L1TMLonRCTSetupAnalyzer::analyze( const Event& evt, const EventSetup& es )
   edm::Handle<l1tp2::rctOutputLinkCollection> EGammaSLR2_link;
   edm::Handle<l1tp2::rctOutputLinkCollection> EGammaSLR1_link;
   edm::Handle<l1tp2::rctOutputLinkCollection> EGammaSLR0_link;
+  edm::Handle<l1tp2::rctOutputLinkCollection> ECALUnclusteredSLR3_link;
+  edm::Handle<l1tp2::rctOutputLinkCollection> ECALUnclusteredSLR2_link;
+  edm::Handle<l1tp2::rctOutputLinkCollection> ECALUnclusteredSLR1_link;
+  edm::Handle<l1tp2::rctOutputLinkCollection> ECALUnclusteredSLR0_link;
   edm::Handle<l1tp2::rctOutputLinkCollection> HCAL8_link;
   edm::Handle<l1tp2::rctOutputLinkCollection> HCAL7_link;
   edm::Handle<l1tp2::rctOutputLinkCollection> HCAL6_link;
@@ -229,18 +273,52 @@ void L1TMLonRCTSetupAnalyzer::analyze( const Event& evt, const EventSetup& es )
   SLR0_cluster_brems->clear();
   SLR0_cluster_spare->clear();
 
+  // Clear ECAL unclustered energy vectors
+  // SLR3
+  ECALUnclusteredSLR3_tower_et->clear();
+  ECALUnclusteredSLR3_tower_eta->clear();
+  ECALUnclusteredSLR3_tower_phi->clear();
+  ECALUnclusteredSLR3_tower_timing->clear();
+  ECALUnclusteredSLR3_tower_spike->clear();
+  // SLR2
+  ECALUnclusteredSLR2_tower_et->clear();
+  ECALUnclusteredSLR2_tower_eta->clear();
+  ECALUnclusteredSLR2_tower_phi->clear();
+  ECALUnclusteredSLR2_tower_timing->clear();
+  ECALUnclusteredSLR2_tower_spike->clear();
+  // SLR1
+  ECALUnclusteredSLR1_tower_et->clear();
+  ECALUnclusteredSLR1_tower_eta->clear();
+  ECALUnclusteredSLR1_tower_phi->clear();
+  ECALUnclusteredSLR1_tower_timing->clear();
+  ECALUnclusteredSLR1_tower_spike->clear();
+  // SLR0
+  ECALUnclusteredSLR0_tower_et->clear();
+  ECALUnclusteredSLR0_tower_eta->clear();
+  ECALUnclusteredSLR0_tower_phi->clear();
+  ECALUnclusteredSLR0_tower_timing->clear();
+  ECALUnclusteredSLR0_tower_spike->clear();
+
   // Clear HCAL vectors
   // HCAL link 8
   HCAL8_tower_et->clear();
+  HCAL8_tower_eta->clear();
+  HCAL8_tower_phi->clear();
   HCAL8_tower_fb->clear();
   // HCAL link 7
   HCAL7_tower_et->clear();
+  HCAL7_tower_eta->clear();
+  HCAL7_tower_phi->clear();
   HCAL7_tower_fb->clear();
   // HCAL link 6
   HCAL6_tower_et->clear();
+  HCAL6_tower_eta->clear();
+  HCAL6_tower_phi->clear();
   HCAL6_tower_fb->clear();
   // HCAL link 5
   HCAL5_tower_et->clear();
+  HCAL5_tower_eta->clear();
+  HCAL5_tower_phi->clear();
   HCAL5_tower_fb->clear();
 
   // Read out SLR3 EGamma clusters
@@ -368,56 +446,180 @@ void L1TMLonRCTSetupAnalyzer::analyze( const Event& evt, const EventSetup& es )
     }
   }
 
-  // FIXME: Write out HCAL TPs
+  // Read out SLR3 ECAL unclustered energy
+  if(evt.getByToken(ECALUnclusteredSLR3Src_, ECALUnclusteredSLR3_link)){
+    for(const auto & link : *ECALUnclusteredSLR3_link){
+
+      getECALUnclusteredEnergy(
+        link.data(),
+        30,
+        RCT_ECAL_tower_et,
+        RCT_ECAL_tower_eta,
+        RCT_ECAL_tower_phi,
+        RCT_ECAL_tower_timing,
+        RCT_ECAL_tower_spike
+      );
+      ECALUnclusteredSLR3_tower_et->push_back(*RCT_ECAL_tower_et);
+      ECALUnclusteredSLR3_tower_eta->push_back(*RCT_ECAL_tower_eta);
+      ECALUnclusteredSLR3_tower_phi->push_back(*RCT_ECAL_tower_phi);
+      ECALUnclusteredSLR3_tower_timing->push_back(*RCT_ECAL_tower_timing);
+      ECALUnclusteredSLR3_tower_spike->push_back(*RCT_ECAL_tower_spike);
+    }
+  }
+  // Read out SLR2 ECAL unclustered energy
+  if(evt.getByToken(ECALUnclusteredSLR2Src_, ECALUnclusteredSLR2_link)){
+    for(const auto & link : *ECALUnclusteredSLR2_link){
+
+      getECALUnclusteredEnergy(
+        link.data(),
+        30,
+        RCT_ECAL_tower_et,
+        RCT_ECAL_tower_eta,
+        RCT_ECAL_tower_phi,
+        RCT_ECAL_tower_timing,
+        RCT_ECAL_tower_spike
+      );
+      ECALUnclusteredSLR2_tower_et->push_back(*RCT_ECAL_tower_et);
+      ECALUnclusteredSLR2_tower_eta->push_back(*RCT_ECAL_tower_eta);
+      ECALUnclusteredSLR2_tower_phi->push_back(*RCT_ECAL_tower_phi);
+      ECALUnclusteredSLR2_tower_timing->push_back(*RCT_ECAL_tower_timing);
+      ECALUnclusteredSLR2_tower_spike->push_back(*RCT_ECAL_tower_spike);
+    }
+  }
+  // Read out SLR1 ECAL unclustered energy
+  if(evt.getByToken(ECALUnclusteredSLR1Src_, ECALUnclusteredSLR1_link)){
+    for(const auto & link : *ECALUnclusteredSLR1_link){
+
+      getECALUnclusteredEnergy(
+        link.data(),
+        30,
+        RCT_ECAL_tower_et,
+        RCT_ECAL_tower_eta,
+        RCT_ECAL_tower_phi,
+        RCT_ECAL_tower_timing,
+        RCT_ECAL_tower_spike
+      );
+      ECALUnclusteredSLR1_tower_et->push_back(*RCT_ECAL_tower_et);
+      ECALUnclusteredSLR1_tower_eta->push_back(*RCT_ECAL_tower_eta);
+      ECALUnclusteredSLR1_tower_phi->push_back(*RCT_ECAL_tower_phi);
+      ECALUnclusteredSLR1_tower_timing->push_back(*RCT_ECAL_tower_timing);
+      ECALUnclusteredSLR1_tower_spike->push_back(*RCT_ECAL_tower_spike);
+    }
+  }
+  // Read out SLR0 ECAL unclustered energy
+  if(evt.getByToken(ECALUnclusteredSLR0Src_, ECALUnclusteredSLR0_link)){
+    for(const auto & link : *ECALUnclusteredSLR0_link){
+
+      getECALUnclusteredEnergy(
+        link.data(),
+        12,
+        RCT_ECAL_tower_et,
+        RCT_ECAL_tower_eta,
+        RCT_ECAL_tower_phi,
+        RCT_ECAL_tower_timing,
+        RCT_ECAL_tower_spike
+      );
+      ECALUnclusteredSLR0_tower_et->push_back(*RCT_ECAL_tower_et);
+      ECALUnclusteredSLR0_tower_eta->push_back(*RCT_ECAL_tower_eta);
+      ECALUnclusteredSLR0_tower_phi->push_back(*RCT_ECAL_tower_phi);
+      ECALUnclusteredSLR0_tower_timing->push_back(*RCT_ECAL_tower_timing);
+      ECALUnclusteredSLR0_tower_spike->push_back(*RCT_ECAL_tower_spike);
+    }
+  }
+
+  // Write out HCAL TPs
+  int cc; // Keep track of which RCT card we are on for secondhalfstarts purposes
+  bool secondhalfstarts;
   if(evt.getByToken(HCAL8Src_, HCAL8_link)){
+    cc = 0;
     for(const auto & link : *HCAL8_link){
 
+      secondhalfstarts = (((cc + 3) % 4) > 1); //True for cards 0,3,4,7,etc.
+
       getHCALTowers(
         link.data(),
-        RCT_tower_et,
-        RCT_tower_fb
+        secondhalfstarts,
+        8,
+        RCT_HCAL_tower_et,
+        RCT_HCAL_tower_eta,
+        RCT_HCAL_tower_phi,
+        RCT_HCAL_tower_fb
       );
-      HCAL8_tower_et->push_back(*RCT_tower_et);
-      HCAL8_tower_fb->push_back(*RCT_tower_fb);
+      HCAL8_tower_et->push_back(*RCT_HCAL_tower_et);
+      HCAL8_tower_eta->push_back(*RCT_HCAL_tower_eta);
+      HCAL8_tower_phi->push_back(*RCT_HCAL_tower_phi);
+      HCAL8_tower_fb->push_back(*RCT_HCAL_tower_fb);
+
+      cc = cc + 1;
     }
   }
-
   if(evt.getByToken(HCAL7Src_, HCAL7_link)){
+    cc = 0;
     for(const auto & link : *HCAL7_link){
 
+      secondhalfstarts = (((cc + 3) % 4) > 1); //True for cards 0,3,4,7,etc.
+
       getHCALTowers(
         link.data(),
-        RCT_tower_et,
-        RCT_tower_fb
+        secondhalfstarts,
+        7,
+        RCT_HCAL_tower_et,
+        RCT_HCAL_tower_eta,
+        RCT_HCAL_tower_phi,
+        RCT_HCAL_tower_fb
       );
-      HCAL7_tower_et->push_back(*RCT_tower_et);
-      HCAL7_tower_fb->push_back(*RCT_tower_fb);
+      HCAL7_tower_et->push_back(*RCT_HCAL_tower_et);
+      HCAL7_tower_eta->push_back(*RCT_HCAL_tower_eta);
+      HCAL7_tower_phi->push_back(*RCT_HCAL_tower_phi);
+      HCAL7_tower_fb->push_back(*RCT_HCAL_tower_fb);
+
+      cc = cc + 1;
     }
   }
-
   if(evt.getByToken(HCAL6Src_, HCAL6_link)){
+    cc = 0;
     for(const auto & link : *HCAL6_link){
 
+      secondhalfstarts = (((cc + 3) % 4) > 1); //True for cards 0,3,4,7,etc.
+
       getHCALTowers(
         link.data(),
-        RCT_tower_et,
-        RCT_tower_fb
+        secondhalfstarts,
+        6,
+        RCT_HCAL_tower_et,
+        RCT_HCAL_tower_eta,
+        RCT_HCAL_tower_phi,
+        RCT_HCAL_tower_fb
       );
-      HCAL6_tower_et->push_back(*RCT_tower_et);
-      HCAL6_tower_fb->push_back(*RCT_tower_fb);
+      HCAL6_tower_et->push_back(*RCT_HCAL_tower_et);
+      HCAL6_tower_eta->push_back(*RCT_HCAL_tower_eta);
+      HCAL6_tower_phi->push_back(*RCT_HCAL_tower_phi);
+      HCAL6_tower_fb->push_back(*RCT_HCAL_tower_fb);
+
+      cc = cc + 1;
     }
   }
-
   if(evt.getByToken(HCAL5Src_, HCAL5_link)){
+    cc = 0;
     for(const auto & link : *HCAL5_link){
+
+      secondhalfstarts = (((cc + 3) % 4) > 1); //True for cards 0,3,4,7,etc.
 
       getHCALTowers(
         link.data(),
-        RCT_tower_et,
-        RCT_tower_fb
+        secondhalfstarts,
+        5,
+        RCT_HCAL_tower_et,
+        RCT_HCAL_tower_eta,
+        RCT_HCAL_tower_phi,
+        RCT_HCAL_tower_fb
       );
-      HCAL5_tower_et->push_back(*RCT_tower_et);
-      HCAL5_tower_fb->push_back(*RCT_tower_fb);
+      HCAL5_tower_et->push_back(*RCT_HCAL_tower_et);
+      HCAL5_tower_eta->push_back(*RCT_HCAL_tower_eta);
+      HCAL5_tower_phi->push_back(*RCT_HCAL_tower_phi);
+      HCAL5_tower_fb->push_back(*RCT_HCAL_tower_fb);
+
+      cc = cc + 1;
     }
   }
 
@@ -489,17 +691,63 @@ void getEGammaClusters(
 
 }
 
-// FIXME: Replace with a function that gets HCAL TP info
+void getECALUnclusteredEnergy(
+  ap_uint<576> Data,
+  int nTowers,
+  std::vector<int>* RCT_et,
+  std::vector<int>* RCT_eta,
+  std::vector<int>* RCT_phi,
+  std::vector<int>* RCT_timing,
+  std::vector<int>* RCT_spike
+) {
+
+  int this_et;
+  int this_eta;
+  int this_phi;
+  int this_timing;
+  int this_spike;
+
+  RCT_et->clear();
+  RCT_eta->clear();
+  RCT_phi->clear();
+  RCT_timing->clear();
+  RCT_spike->clear();
+
+  for(int i=0; i<nTowers; i++) {
+    int start = i*18;
+
+    this_et = (int)Data.range(start+11,start);
+    RCT_et->push_back(this_et);
+    this_eta = i/6;
+    RCT_eta->push_back(this_eta);
+    this_phi = i%6;
+    RCT_phi->push_back(this_phi);
+    this_timing = (int)Data.range(start+16,start+12);
+    RCT_timing->push_back(this_timing);
+    this_spike = (int)Data.range(start+17,start+17);
+    RCT_spike->push_back(this_spike);
+  }
+
+}
+
 void getHCALTowers(
   ap_uint<576> Data,
+  bool secondhalfstarts,
+  int nLink,
   std::vector<int>* RCT_et,
+  std::vector<int>* RCT_eta,
+  std::vector<int>* RCT_phi,
   std::vector<int>* RCT_fb
 ) {
 
   int this_et;
+  int this_eta;
+  int this_phi;
   int this_fb;
 
   RCT_et->clear();
+  RCT_eta->clear();
+  RCT_phi->clear();
   RCT_fb->clear();
 
   for(int i=0; i<32; i++) {
@@ -510,6 +758,16 @@ void getHCALTowers(
     RCT_et->push_back(this_et);
     this_fb = (int)Data.range(start+15,start+10);
     RCT_fb->push_back(this_fb);
+
+    this_eta = ((nLink-5)%2)*8 + (i/4);
+    if(!secondhalfstarts){
+      this_phi = ((nLink-5)/2)*4 + (i%4);
+    }
+    else {
+      this_phi = 2 - ((nLink-5)/2)*4 + (i%4);
+    }
+    RCT_eta->push_back(this_eta);
+    RCT_phi->push_back(this_phi);
   }
 
 }
