@@ -325,6 +325,10 @@ void getIP3OutputTowers(
   std::vector<int>* RCT_fb
 ) {
 
+  int this_et;
+  int this_hoe;
+  int this_fb;
+
   RCT_et->clear();
   RCT_eta->clear();
   RCT_phi->clear();
@@ -336,33 +340,27 @@ void getIP3OutputTowers(
     int this_phi = (whichLink - 1)*2;
     int start = i*16;
 
-    // Only add towers with non-zero energy
-    if(Data.range(start+9,start) > 0) {
-      int this_et = (int)Data.range(start+9,start);
-      RCT_et->push_back(this_et);
-      RCT_eta->push_back(i);
-      RCT_phi->push_back(this_phi);
-      int this_hoe = (int)Data.range(start+13,start+10);
-      RCT_hoe->push_back(this_hoe);
-      int this_fb = (int)Data.range(start+15,start+14);
-      RCT_fb->push_back(this_fb);
-    }
+    this_et = (int)Data.range(start+9,start);
+    RCT_et->push_back(this_et);
+    RCT_eta->push_back(i);
+    RCT_phi->push_back(this_phi);
+    this_hoe = (int)Data.range(start+13,start+10);
+    RCT_hoe->push_back(this_hoe);
+    this_fb = (int)Data.range(start+15,start+14);
+    RCT_fb->push_back(this_fb);
 
     // Higher iPhi in this link
     this_phi = (whichLink - 1)*2 + 1;
     start = i*16 + 272;
     
-    // Only add towers with non-zero energy
-    if(Data.range(start+9,start) > 0) {
-      int this_et = (int)Data.range(start+9,start);
-      RCT_et->push_back(this_et);
-      RCT_eta->push_back(i);
-      RCT_phi->push_back(this_phi);
-      int this_hoe = (int)Data.range(start+13,start+10);
-      RCT_hoe->push_back(this_hoe);
-      int this_fb = (int)Data.range(start+15,start+14);
-      RCT_fb->push_back(this_fb);
-    }
+    this_et = (int)Data.range(start+9,start);
+    RCT_et->push_back(this_et);
+    RCT_eta->push_back(i);
+    RCT_phi->push_back(this_phi);
+    this_hoe = (int)Data.range(start+13,start+10);
+    RCT_hoe->push_back(this_hoe);
+    this_fb = (int)Data.range(start+15,start+14);
+    RCT_fb->push_back(this_fb);
   }
 
 }

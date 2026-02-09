@@ -16,11 +16,11 @@ process.load('Configuration.StandardSequences.SimL1Emulator_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1) )
 
 process.source = cms.Source("PoolSource",
   fileNames = cms.untracked.vstring(
-    "root://cmsxrootd.fnal.gov//store/mc/Phase2Spring24DIGIRECOMiniAOD/DoubleElectron_FlatPt-1To100-gun/GEN-SIM-DIGI-RAW-MINIAOD/PU200_Trk1GeV_140X_mcRun4_realistic_v4-v2/2810000/001ebf5f-b83c-43fc-997f-c2e5ecf1f9dd.root",
+    "file:///hdfs/store/user/rsimeon/MCFiles/001ebf5f-b83c-43fc-997f-c2e5ecf1f9dd.root",
   ),
   inputCommands = cms.untracked.vstring(
     "keep *",
@@ -48,7 +48,7 @@ process.RCT = cms.Path( process.l1tPhase2L1CaloEGammaEmulator*process.l1NtupleOl
 
 # output file
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string('old_analyzer.root')
+    fileName = cms.string('old_analyzer_noClusters.root')
 )
 
 process.schedule = cms.Schedule(process.RCT)

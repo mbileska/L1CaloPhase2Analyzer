@@ -81,7 +81,7 @@ L1TMLonRCTSetupAnalyzer::L1TMLonRCTSetupAnalyzer( const ParameterSet & cfg ) :
 {
     folderName_          = cfg.getUntrackedParameter<std::string>("folderName");
 
-    linkTree = tfs_->make<TTree>("linkTree", "RCT Output Link Tree");
+    linkTree = tfs_->make<TTree>("linkTree", "ML on RCT Link Tree");
 
     linkTree->Branch("run",    &run,     "run/I");
     linkTree->Branch("lumi",   &lumi,    "lumi/I");
