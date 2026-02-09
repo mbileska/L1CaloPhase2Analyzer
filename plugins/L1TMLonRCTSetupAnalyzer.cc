@@ -666,9 +666,9 @@ void getEGammaClusters(
     int start = i*64;
     
     int this_seed_energy = (int)Data.range(start+9,start);
-    RCT_seed_energy->push_back(this_seed_pt);
+    RCT_seed_energy->push_back(this_seed_energy);
     int this_energy = (int)Data.range(start+21,start+10);
-    RCT_energy->push_back(this_pt);
+    RCT_energy->push_back(this_energy);
     int this_eta = (int)Data.range(start+26,start+22);
     RCT_eta->push_back(this_eta);
     int this_phi = (int)Data.range(start+31,start+27);
