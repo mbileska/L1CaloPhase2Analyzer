@@ -2,6 +2,8 @@ import FWCore.ParameterSet.Config as cms
 
 from Configuration.StandardSequences.Eras import eras
 
+OUTFILE = "MLonRCT_features.root"
+
 process = cms.Process("L1AlgoTest",eras.Phase2C17I13M9)
 
 process.load('Configuration.StandardSequences.Services_cff')
@@ -48,8 +50,9 @@ process.RCT = cms.Path( process.l1tPhase2MLonRCTSetupProducer*process.l1NtuplePr
 
 # output file
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string('MLonRCT_features.root')
+    fileName = cms.string(OUTFILE)
 )
+print(f"Saving output to {OUTFILE}")
 
 process.schedule = cms.Schedule(process.RCT)
 
