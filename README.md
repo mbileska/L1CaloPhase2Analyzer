@@ -113,8 +113,8 @@
    
    - Seed energy
    - Energy
-   - i$\eta$ (in RCT coordinates)
-   - i$\phi$ (in RCT coordinates)
+   - i $\eta$ (in RCT coordinates)
+   - i $\phi$ (in RCT coordinates)
    - $E_T$ 5x5
    - $E_T$ 2x5
    - Timing
@@ -127,22 +127,22 @@
    ECAL tower branches exist:
 
    - Energy
-   - i$\eta$ (in RCT coordinates)
-   - i$\phi$ (in RCT coordinates)
+   - i $\eta$ (in RCT coordinates)
+   - i $\phi$ (in RCT coordinates)
    - Timing
    - Spike
 
    HCAL tower information is separated out by which input link (== which BCP card) the tower comes from.
    **Importantly, this means that for a given RCT card, its corresponding array will contain towers that do not
-   actually belong to that RCT card's part of the detector.** These towers will have i$\phi$ either < 0 or
+   actually belong to that RCT card's part of the detector.** These towers will have i $\phi$ either < 0 or
    $\geq$ 6 (since each RCT card is 6 towers wide in $\phi$). The branches are labeled by which input link
    the information comes from. For example, there is a branch `HCAL8_tower_et`, `HCAL7_tower_et`, `HCAL6_tower_et`,
    and `HCAL5_tower_et`. Each branch is a 3D array. The outermost axis is events, the middle axis is RCT card, and
    the innermost axis runs over the towers. For each input link, the following HCAL tower branches exist:
 
    - Energy
-   - i$\eta$ (in RCT coordinates)
-   - i$\phi$ (in RCT coordinates - so values < 0 or $\geq$ 6 are towers outside this RCT card)
+   - i $\eta$ (in RCT coordinates)
+   - i $\phi$ (in RCT coordinates - so values < 0 or $\geq$ 6 are towers outside this RCT card)
    - Feature bits
 
    The HCAL feature bits are given here as integers, but are to be understood as 6 bits. For example, if a tower has
