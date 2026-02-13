@@ -10,8 +10,14 @@
 ## Prerequisites to Running
 
    CMSSW_15_0_0_pre3 is meant to be run with an el8 OS. If you are running on a non-el8 machine, you can
-   use an el8 container. For example, one can run the following command from the project root directory (the
-   same directory as the one in which you will run `cmsrel`):
+   use an el8 container. For example, one can do the following. Go to the project root directory (the
+   same directory as the one in which you will run `cmsrel`), and create a file called `.bashrc` with the
+   following contents:
+   ```
+   unset SCRAM_ARCH
+   source /cvmfs/cms.cern.ch/cmsset_default.sh
+   ```
+   and then run the following commands in the command line:
    ```
    export IMAGE=cms:rhel8-x86_64
 
@@ -19,12 +25,8 @@
    -B /cvmfs -B /hdfs -B /scratch -B /afs --pwd /srv /cvmfs/singularity.opensciencegrid.org/cmssw/${IMAGE} \
    /bin/bash --rcfile /srv/.bashrc
    ```
-   where your current directory also contains a file called `.bashrc` with the following contents:
-   ```
-   unset SCRAM_ARCH
-   source /cvmfs/cms.cern.ch/cmsset_default.sh
-   ```
-   If you've put the `singularity` commands into a file called `shell`, then, before proceeding, run
+
+   It is recommended to put the last code block into a file called `shell`. Then, before proceeding, run
    `./shell` in the command line. This must be done every time before using the
    code in this repository. Note that you can run `exit` to exit the container.
 
@@ -98,7 +100,8 @@
    - Path to the feature ntuple
    - Where to save the generated plots
 
-   It can be run with
+   Note that you must create the directory in which you want to save plots (the one specified in the last
+   configurable parameter listed above). It can then be run with
    ```
    python3 examine_MLonRCT_features.py
    ```
