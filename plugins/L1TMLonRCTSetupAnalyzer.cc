@@ -327,6 +327,7 @@ void L1TMLonRCTSetupAnalyzer::analyze( const Event& evt, const EventSetup& es )
 
       getEGammaClusters(
         link.data(),
+        3,
         RCT_cluster_seed_energy,
         RCT_cluster_energy,
         RCT_cluster_eta,
@@ -358,6 +359,7 @@ void L1TMLonRCTSetupAnalyzer::analyze( const Event& evt, const EventSetup& es )
 
       getEGammaClusters(
         link.data(),
+        2,
         RCT_cluster_seed_energy,
         RCT_cluster_energy,
         RCT_cluster_eta,
@@ -389,6 +391,7 @@ void L1TMLonRCTSetupAnalyzer::analyze( const Event& evt, const EventSetup& es )
 
       getEGammaClusters(
         link.data(),
+        1,
         RCT_cluster_seed_energy,
         RCT_cluster_energy,
         RCT_cluster_eta,
@@ -420,6 +423,7 @@ void L1TMLonRCTSetupAnalyzer::analyze( const Event& evt, const EventSetup& es )
 
       getEGammaClusters(
         link.data(),
+        0,
         RCT_cluster_seed_energy,
         RCT_cluster_energy,
         RCT_cluster_eta,
@@ -452,7 +456,7 @@ void L1TMLonRCTSetupAnalyzer::analyze( const Event& evt, const EventSetup& es )
 
       getECALUnclusteredEnergy(
         link.data(),
-        30,
+        3,
         RCT_ECAL_tower_et,
         RCT_ECAL_tower_eta,
         RCT_ECAL_tower_phi,
@@ -472,7 +476,7 @@ void L1TMLonRCTSetupAnalyzer::analyze( const Event& evt, const EventSetup& es )
 
       getECALUnclusteredEnergy(
         link.data(),
-        30,
+        2,
         RCT_ECAL_tower_et,
         RCT_ECAL_tower_eta,
         RCT_ECAL_tower_phi,
@@ -492,7 +496,7 @@ void L1TMLonRCTSetupAnalyzer::analyze( const Event& evt, const EventSetup& es )
 
       getECALUnclusteredEnergy(
         link.data(),
-        30,
+        1,
         RCT_ECAL_tower_et,
         RCT_ECAL_tower_eta,
         RCT_ECAL_tower_phi,
@@ -512,7 +516,7 @@ void L1TMLonRCTSetupAnalyzer::analyze( const Event& evt, const EventSetup& es )
 
       getECALUnclusteredEnergy(
         link.data(),
-        12,
+        0,
         RCT_ECAL_tower_et,
         RCT_ECAL_tower_eta,
         RCT_ECAL_tower_phi,
@@ -637,6 +641,7 @@ L1TMLonRCTSetupAnalyzer::~L1TMLonRCTSetupAnalyzer(){
 //////////////////////////// Utility functions ///////////////////////////////
 void getEGammaClusters(
   ap_uint<576> Data,
+  int SLR,
   std::vector<int>* RCT_seed_energy,
   std::vector<int>* RCT_energy,
   std::vector<int>* RCT_eta,
@@ -649,6 +654,10 @@ void getEGammaClusters(
   std::vector<int>* RCT_brems,
   std::vector<int>* RCT_spare
 ) {
+
+  // If cluster is from SLR other than 0, shift iEta up appropriately
+  int maybe_iEta_offset = SLR*25 - 15;
+  int iEta_offset = std::max(maybe_iEta_offset,0);
   
   RCT_seed_energy->clear();
   RCT_energy->clear();
@@ -669,7 +678,7 @@ void getEGammaClusters(
     RCT_seed_energy->push_back(this_seed_energy);
     int this_energy = (int)Data.range(start+21,start+10);
     RCT_energy->push_back(this_energy);
-    int this_eta = (int)Data.range(start+26,start+22);
+    int this_eta = (int)Data.range(start+26,start+22) + iEta_offset;
     RCT_eta->push_back(this_eta);
     int this_phi = (int)Data.range(start+31,start+27);
     RCT_phi->push_back(this_phi);
@@ -693,13 +702,26 @@ void getEGammaClusters(
 
 void getECALUnclusteredEnergy(
   ap_uint<576> Data,
-  int nTowers,
+  int SLR,
   std::vector<int>* RCT_et,
   std::vector<int>* RCT_eta,
   std::vector<int>* RCT_phi,
   std::vector<int>* RCT_timing,
   std::vector<int>* RCT_spike
 ) {
+
+  // If tower is from SLR other than 0, shift iEta up appropriately
+  int maybe_iEta_offset = SLR*5 - 3;
+  int iEta_offset = std::max(maybe_iEta_offset,0);
+
+  // If SLR is not 0, then nTowers is 30. Otherwise, it is 12
+  int nTowers;
+  if(SLR > 0){
+    nTowers = 30;
+  }
+  else {
+    nTowers = 12;
+  }
 
   int this_et;
   int this_eta;
@@ -718,7 +740,7 @@ void getECALUnclusteredEnergy(
 
     this_et = (int)Data.range(start+11,start);
     RCT_et->push_back(this_et);
-    this_eta = i/6;
+    this_eta = i/6 + iEta_offset;
     RCT_eta->push_back(this_eta);
     this_phi = i%6;
     RCT_phi->push_back(this_phi);

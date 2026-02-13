@@ -109,16 +109,16 @@ def plot_clusters(tree,iEvent=0,cc=0):
 
     eta_axis = axis.Regular(ECAL_TOWERS_ETA_PER_CARD*5,-0.5,ECAL_TOWERS_ETA_PER_CARD*5-0.5,name="eta",label=r"$\eta$")
     phi_axis = axis.Regular(TOWERS_PHI_PER_CARD*5,-0.5,TOWERS_PHI_PER_CARD*5-0.5,name="phi",label=r"$\phi$")
-    display_hist = Hist(eta_axis,phi_axis,name="Events")
+    display_hist = Hist(phi_axis,eta_axis,name="Events")
 
-    display_hist.fill(eta=ak.ravel(iEta),phi=ak.ravel(iPhi),weight=ak.ravel(et))
+    display_hist.fill(phi=ak.ravel(iPhi),eta=ak.ravel(iEta),weight=ak.ravel(et))
 
     fig,ax = plt.subplots(1,1,figsize=(7,4.7))
     hep.hist2dplot(display_hist,ax=ax,cmin=0.0)
     title = f"Clusters (Event {iEvent}, Card {cc})"
     ax.set_title(title,y=1.07,pad=2)
-    ax.set_xlabel(r"$\eta$",fontsize=10)
-    ax.set_ylabel(r"$\phi$",fontsize=10,labelpad=2)
+    ax.set_ylabel(r"$\eta$",fontsize=10)
+    ax.set_xlabel(r"$\phi$",fontsize=10,labelpad=2)
 
     outfile = f"{PLOT_DIR}clusters_iEv{iEvent}_cc{cc}.png"
     plt.savefig(outfile,bbox_inches='tight')
@@ -138,16 +138,16 @@ def plot_ecal_towers(tree,iEvent=0,cc=0):
 
     eta_axis = axis.Regular(ECAL_TOWERS_ETA_PER_CARD,-0.5,ECAL_TOWERS_ETA_PER_CARD-0.5,name="eta",label=r"$\eta$")
     phi_axis = axis.Regular(TOWERS_PHI_PER_CARD,-0.5,TOWERS_PHI_PER_CARD-0.5,name="phi",label=r"$\phi$")
-    display_hist = Hist(eta_axis,phi_axis,name="Events")
+    display_hist = Hist(phi_axis,eta_axis,name="Events")
 
-    display_hist.fill(eta=ak.ravel(iEta),phi=ak.ravel(iPhi),weight=ak.ravel(et))
+    display_hist.fill(phi=ak.ravel(iPhi),eta=ak.ravel(iEta),weight=ak.ravel(et))
 
     fig,ax = plt.subplots(1,1,figsize=(7,4.7))
     hep.hist2dplot(display_hist,ax=ax,cmin=0.0)
     title = f"ECAL Towers (Event {iEvent}, Card {cc})"
     ax.set_title(title,y=1.07,pad=2)
-    ax.set_xlabel(r"$\eta$",fontsize=10)
-    ax.set_ylabel(r"$\phi$",fontsize=10,labelpad=2)
+    ax.set_ylabel(r"$\eta$",fontsize=10)
+    ax.set_xlabel(r"$\phi$",fontsize=10,labelpad=2)
 
     outfile = f"{PLOT_DIR}ecal_towers_iEv{iEvent}_cc{cc}.png"
     plt.savefig(outfile,bbox_inches='tight')
@@ -167,16 +167,16 @@ def plot_hcal_towers(tree,iEvent=0,cc=0):
 
     eta_axis = axis.Regular(HCAL_TOWERS_ETA_PER_CARD,-0.5,HCAL_TOWERS_ETA_PER_CARD-0.5,name="eta",label=r"$\eta$")
     phi_axis = axis.Regular(TOWERS_PHI_PER_CARD,-0.5,TOWERS_PHI_PER_CARD-0.5,name="phi",label=r"$\phi$")
-    display_hist = Hist(eta_axis,phi_axis,name="Events")
+    display_hist = Hist(phi_axis,eta_axis,name="Events")
 
-    display_hist.fill(eta=ak.ravel(iEta),phi=ak.ravel(iPhi),weight=ak.ravel(et))
+    display_hist.fill(phi=ak.ravel(iPhi),eta=ak.ravel(iEta),weight=ak.ravel(et))
 
     fig,ax = plt.subplots(1,1,figsize=(7,4.7))
     hep.hist2dplot(display_hist,ax=ax,cmin=0.0)
     title = f"HCAL Towers (Event {iEvent}, Card {cc})"
     ax.set_title(title,y=1.07,pad=2)
-    ax.set_xlabel(r"$\eta$",fontsize=10)
-    ax.set_ylabel(r"$\phi$",fontsize=10,labelpad=2)
+    ax.set_ylabel(r"$\eta$",fontsize=10)
+    ax.set_xlabel(r"$\phi$",fontsize=10,labelpad=2)
 
     outfile = f"{PLOT_DIR}hcal_towers_iEv{iEvent}_cc{cc}.png"
     plt.savefig(outfile,bbox_inches='tight')

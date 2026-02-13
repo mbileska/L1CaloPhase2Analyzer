@@ -256,6 +256,7 @@ class L1TMLonRCTSetupAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedReso
 
 void getEGammaClusters(
   ap_uint<576> Data,
+  int SLR,
   std::vector<int>* RCT_seed_energy,
   std::vector<int>* RCT_energy,
   std::vector<int>* RCT_eta,
@@ -271,7 +272,7 @@ void getEGammaClusters(
 
 void getECALUnclusteredEnergy(
   ap_uint<576> Data,
-  int nTowers,
+  int SLR,
   std::vector<int>* RCT_et,
   std::vector<int>* RCT_eta,
   std::vector<int>* RCT_phi,
