@@ -59,7 +59,7 @@
    This runs the synthetic GCT Sum test-vector producer, the GCT Sum emulator, and the analyzer.  
    It writes `gctsum_testvectors.root`, which contains the decoded GT-link outputs in `l1TGCTSumAnalyzer/gctSumTree`.
 
-   For the current Sasha/Alexander pT-sorting test vector, the expected result is:
+   For the current pT-sorting test vector, the expected result is:
    - 6 valid EG objects
    - 0 valid EGIso objects
    - 6 valid Jet objects
