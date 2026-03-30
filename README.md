@@ -54,19 +54,18 @@
    scram b -j 12
    ```
 
-## To run the GCT Sum Card emulator on test vectors
+## Running the GCT Sum Validation on Test Vectors
 
    This runs the synthetic GCT Sum test-vector producer, the GCT Sum emulator, and the analyzer.  
    It writes `gctsum_testvectors.root`, which contains the decoded GT-link outputs in `l1TGCTSumAnalyzer/gctSumTree`.
 
-   For the current pT-sorting test vector, the expected result is:
-   - 6 valid EG objects
-   - 0 valid EGIso objects
-   - 6 valid Jet objects
-   - 0 valid Tau objects
-   - 4 valid Sum words
-   - identical output in every event
-   - EG and Jet `hwPt` sorted in descending order
+   The current test setup runs a deterministic 6-event pattern cycle, repeated twice for a determinism check:
+   - all-zero input
+   - single positive-side EG-like object
+   - positive-side EG + sums
+   - dense positive-side occupancy
+   - positive and negative eta populated
+   - sparse hadron/tau-like pattern and a sum
 
    Run:   
    ```
@@ -76,16 +75,20 @@
    ```
    
    A successful check should print:
-   - `nEgValid unique: {6}`
-   - `nEgiValid unique: {0}`
-   - `nJetValid unique: {6}`
-   - `nTauValid unique: {0}`
-   - `nSumValid unique: {4}`
-   - `All LinkOut0 identical: True`
-   - `All LinkOut2 identical: True`
-   - `All LinkOut3 identical: True`
-   - `EG sorted descending: True`
-   - `Jet sorted descending: True`
+   - `Test event count: PASSED`
+   - `Test GT output link format (6 links, 9 words each): PASSED`
+   - `Test all-zero vector minimal output: PASSED`
+   - `Test single EG-like object propagates: PASSED`
+   - `Test EG plus sums case: PASSED`
+   - `Test dense positive-side EG/EGiso ordering: PASSED`
+   - `Test positive/negative eta separation affects GT output: PASSED`
+   - `Test hadron/tau-like pattern propagates: PASSED`
+   - `Test deterministic repeat over second 6-event cycle: PASSED`
+   - `Test non-zero word count deterministic: PASSED`
+   - `Test decoded sum branches consistent with sum validity: PASSED`
 
-   The NumPy warnings printed by `check_gctsum_outputs.py` are harmless environment warnings and can be ignored.
+   Notes:
+   - `cmsRun` uses the emulator: the test-vector producer only provides the input links, the emulator processes them, and the analyzer reads the emulator outputs.
+   - If execution feels slow, the main overhead is usually analyzer-side event printing rather than the GCT Sum emulator logic itself.
+   - The NumPy warnings printed by `check_gctsum_outputs.py` are harmless environment warnings and can be ignored or suppressed.
 
