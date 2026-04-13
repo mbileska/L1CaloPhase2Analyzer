@@ -8,9 +8,8 @@ warnings.filterwarnings("ignore", category=UserWarning, module="numpy")
 ROOT_FILE = "gctsum_testvectors.root"
 TREE_NAME = "l1TGCTSumAnalyzer/gctSumTree"
 
-def fail(msg):
-    print(msg)
-    return False
+if len(sys.argv) > 1:
+    ROOT_FILE = sys.argv[1]
 
 def passed(name):
     print(f"Test {name}: PASSED")
@@ -24,217 +23,270 @@ def failed(name, msg):
 def tolist(x):
     return ak.to_list(x)
 
-def nonzero(values):
-    return [v for v in tolist(values) if v > 0]
+def nonzero(vals):
+    return [v for v in tolist(vals) if v > 0]
 
-def is_descending(values):
-    return values == sorted(values, reverse=True)
+def is_desc(vals):
+    return vals == sorted(vals, reverse=True)
 
-def same_words(a, b):
-    return tolist(a) == tolist(b)
+def count_nonzero_words(words):
+    return sum(1 for w in tolist(words) if w != 0)
 
-def only_zero_or_one(words):
-    vals = tolist(words)
-    bad = [w for w in vals if w not in (0, 1)]
-    return len(bad) == 0, bad
-
-def count_nontrivial_words(words):
-    return sum(1 for w in tolist(words) if w > 1)
-
-def load_tree():
-    f = uproot.open(ROOT_FILE)
+def load_tree(path):
+    f = uproot.open(path)
     return f[TREE_NAME]
+
+def event_links(tree, iev, prefix, n):
+    return [tree[f"{prefix}{i}_words"].array()[iev] for i in range(n)]
+
+def active_input_links(tree, iev):
+    out = []
+    for i in range(24):
+        if any(w != 0 for w in tolist(tree[f"linkIn{i}_words"].array()[iev])):
+            out.append(i)
+    return out
+
+def top_nonzero(vals):
+    nz = nonzero(vals)
+    return max(nz) if nz else 0
+
+def count_nonzero_by_sign(pt_arr, sign_arr, want_sign):
+    pts = tolist(pt_arr)
+    signs = tolist(sign_arr)
+    n = 0
+    for pt, s in zip(pts, signs):
+        if pt > 0 and s == want_sign:
+            n += 1
+    return n
 
 def main():
     try:
-        t = load_tree()
+      t = load_tree(ROOT_FILE)
     except Exception as exc:
-        print(f"FAILED to open {ROOT_FILE}:{TREE_NAME}")
-        print(exc)
-        sys.exit(1)
+      print(f"FAILED to open {ROOT_FILE}:{TREE_NAME}")
+      print(exc)
+      sys.exit(1)
 
-    required = [
-        "nEgValid", "nEgiValid", "nJetValid", "nTauValid", "nSumValid", "nNonZeroWords",
-        "eg_hwPt", "egi_hwPt", "jet_hwPt", "tau_hwPt",
-        "sum_ex", "sum_ey", "sum_ht",
-        "linkOut0_words", "linkOut1_words", "linkOut2_words",
-        "linkOut3_words", "linkOut4_words", "linkOut5_words",
-    ]
-    missing = [b for b in required if b not in t.keys()]
+    needed = [
+        "patternId",
+        "nEgNonZero", "nEgiNonZero", "nJetNonZero", "nTauNonZero", "nSumNonZero",
+        "eg_hwPt", "eg_isPosEta", "egi_hwPt", "jet_hwPt", "jet_isPosEta",
+        "tau_hwPt", "tau_isPosEta", "sum_ex", "sum_ey", "sum_ht",
+    ] + [f"linkIn{i}_words" for i in range(24)] + [f"linkOut{i}_words" for i in range(6)]
+
+    missing = [b for b in needed if b not in t.keys()]
     if missing:
         print("FAILED: missing branches")
         for m in missing:
             print(f"  {m}")
         sys.exit(1)
 
-    nEg   = t["nEgValid"].array()
-    nEgi  = t["nEgiValid"].array()
-    nJet  = t["nJetValid"].array()
-    nTau  = t["nTauValid"].array()
-    nSum  = t["nSumValid"].array()
-    nNZ   = t["nNonZeroWords"].array()
+    patternId = t["patternId"].array()
+    nEg = t["nEgNonZero"].array()
+    nEgi = t["nEgiNonZero"].array()
+    nJet = t["nJetNonZero"].array()
+    nTau = t["nTauNonZero"].array()
+    nSum = t["nSumNonZero"].array()
 
-    eg_pt  = t["eg_hwPt"].array()
+    eg_pt = t["eg_hwPt"].array()
+    eg_sign = t["eg_isPosEta"].array()
     egi_pt = t["egi_hwPt"].array()
     jet_pt = t["jet_hwPt"].array()
+    jet_sign = t["jet_isPosEta"].array()
     tau_pt = t["tau_hwPt"].array()
+    tau_sign = t["tau_isPosEta"].array()
 
     sum_ex = t["sum_ex"].array()
     sum_ey = t["sum_ey"].array()
     sum_ht = t["sum_ht"].array()
 
-    link0 = t["linkOut0_words"].array()
-    link1 = t["linkOut1_words"].array()
-    link2 = t["linkOut2_words"].array()
-    link3 = t["linkOut3_words"].array()
-    link4 = t["linkOut4_words"].array()
-    link5 = t["linkOut5_words"].array()
-
-    links = [link0, link1, link2, link3, link4, link5]
-
     all_ok = True
 
-    # Event count
-    if len(nEg) == 12:
+    # 20 events = 10-pattern cycle repeated twice
+    if len(patternId) == 20:
         passed("event count")
     else:
-        all_ok = failed("event count", f"expected 12 events, got {len(nEg)}")
+        all_ok = failed("event count", f"expected 20 events, got {len(patternId)}")
 
-    # 6 output links, 9 words each
+    # input format
     ok = True
     detail = ""
-    for iev in range(len(nEg)):
-        sizes = [len(tolist(link[iev])) for link in links]
-        if sizes != [9, 9, 9, 9, 9, 9]:
-            ok = False
-            detail = f"event {iev+1} has link sizes {sizes}, expected [9,9,9,9,9,9]"
-            break
-    if ok:
-        passed("GT output link format (6 links, 9 words each)")
-    else:
-        all_ok = failed("GT output link format (6 links, 9 words each)", detail)
-
-    # Event 1: all-zero vector should be minimal output
-    ok = True
-    details = []
-    for ilink, link in enumerate(links):
-        this_ok, bad = only_zero_or_one(link[0])
-        if not this_ok:
-            ok = False
-            details.append(f"LinkOut{ilink} has non-minimal words {bad[:5]}")
-    if ok:
-        passed("all-zero vector minimal output")
-    else:
-        all_ok = failed("all-zero vector minimal output", "; ".join(details))
-
-    # Event 2: single positive EG-like object propagates
-    evt = 1
-    ok = (int(nEg[evt]) >= 1) and any(count_nontrivial_words(link[evt]) > 0 for link in links)
-    if ok:
-        passed("single EG-like object propagates")
-    else:
-        all_ok = failed(
-            "single EG-like object propagates",
-            f"event 2 has nEgValid={int(nEg[evt])} and no nontrivial output words"
-        )
-
-    # Event 3: EG + sums case
-    evt = 2
-    ok = (int(nEg[evt]) >= 1) and (int(nSum[evt]) >= 1) and (count_nontrivial_words(link5[evt]) > 0)
-    if ok:
-        passed("EG plus sums case")
-    else:
-        all_ok = failed(
-            "EG plus sums case",
-            f"event 3 has nEgValid={int(nEg[evt])}, nSumValid={int(nSum[evt])}, "
-            f"nontrivial LinkOut5 words={count_nontrivial_words(link5[evt])}"
-        )
-
-    # Event 4: dense positive-side ordering
-    evt = 3
-    eg_dense = nonzero(eg_pt[evt])
-    egi_dense = nonzero(egi_pt[evt])
-    ok = True
-    problems = []
-    if len(eg_dense) > 1 and not is_descending(eg_dense):
-        ok = False
-        problems.append(f"EG not descending: {eg_dense}")
-    if len(egi_dense) > 1 and not is_descending(egi_dense):
-        ok = False
-        problems.append(f"EGiso not descending: {egi_dense}")
-    if ok:
-        passed("dense positive-side EG/EGiso ordering")
-    else:
-        all_ok = failed("dense positive-side EG/EGiso ordering", "; ".join(problems))
-
-    # Event 5: positive/negative eta population changes output
-    evt_a = 3  # dense positive only
-    evt_b = 4  # both positive and negative eta populated
-    identical = all(same_words(link[evt_a], link[evt_b]) for link in links)
-    if not identical:
-        passed("positive/negative eta separation affects GT output")
-    else:
-        all_ok = failed(
-            "positive/negative eta separation affects GT output",
-            "event 4 and event 5 outputs are identical"
-        )
-
-    # Event 6: sparse hadron/tau-like pattern and a sum
-    evt = 5
-    ok = ((int(nJet[evt]) >= 1) or (int(nTau[evt]) >= 1) or (int(nSum[evt]) >= 1))
-    if ok:
-        passed("hadron/tau-like pattern propagates")
-    else:
-        all_ok = failed(
-            "hadron/tau-like pattern propagates",
-            f"event 6 has nJetValid={int(nJet[evt])}, nTauValid={int(nTau[evt])}, nSumValid={int(nSum[evt])}"
-        )
-
-    # Determinism: events 1..6 repeat in 7..12
-    ok = True
-    detail = ""
-    for i in range(6):
-        for ilink, link in enumerate(links):
-            if not same_words(link[i], link[i + 6]):
+    for iev in range(len(patternId)):
+        for i in range(24):
+            vals = tolist(t[f"linkIn{i}_words"].array()[iev])
+            if len(vals) != 9:
                 ok = False
-                detail = f"event {i+1} != event {i+7} for LinkOut{ilink}"
+                detail = f"event {iev+1}, linkIn{i} has {len(vals)} words, expected 9"
                 break
         if not ok:
             break
     if ok:
-        passed("deterministic repeat over second 6-event cycle")
+        passed("input link format (24 links, 9 words each)")
     else:
-        all_ok = failed("deterministic repeat over second 6-event cycle", detail)
+        all_ok = failed("input link format (24 links, 9 words each)", detail)
 
-    # Non-zero word count should be stable across repeated pattern
+    # output format
     ok = True
     detail = ""
-    for i in range(6):
-        if int(nNZ[i]) != int(nNZ[i + 6]):
-            ok = False
-            detail = f"event {i+1} nNonZeroWords={int(nNZ[i])}, event {i+7} nNonZeroWords={int(nNZ[i+6])}"
+    for iev in range(len(patternId)):
+        for i in range(6):
+            vals = tolist(t[f"linkOut{i}_words"].array()[iev])
+            if len(vals) != 9:
+                ok = False
+                detail = f"event {iev+1}, linkOut{i} has {len(vals)} words, expected 9"
+                break
+        if not ok:
             break
     if ok:
-        passed("non-zero word count deterministic")
+        passed("output link format (6 links, 9 words each)")
     else:
-        all_ok = failed("non-zero word count deterministic", detail)
+        all_ok = failed("output link format (6 links, 9 words each)", detail)
 
-    # Sum branches self-consistency when sums are present
+    # pattern 0: all zero input
+    for iev in [0, 10]:
+        ok = True
+        active = active_input_links(t, iev)
+        if active != []:
+            ok = False
+            all_ok = failed(f"pattern 0 event {iev+1}", f"active input links {active}, expected none")
+            continue
+        if int(nEg[iev]) != 0 or int(nEgi[iev]) != 0 or int(nJet[iev]) != 0 or int(nTau[iev]) != 0:
+            ok = False
+            all_ok = failed(
+                f"pattern 0 event {iev+1}",
+                f"nonzero object counts: EG={int(nEg[iev])}, EGI={int(nEgi[iev])}, Jet={int(nJet[iev])}, Tau={int(nTau[iev])}"
+            )
+            continue
+        if int(nSum[iev]) != 0:
+            ok = False
+            all_ok = failed(f"pattern 0 event {iev+1}", f"nSumNonZero={int(nSum[iev])}, expected 0")
+            continue
+        passed(f"pattern 0 event {iev+1}")
+
+    # pattern 1: single EG
+    for iev in [1, 11]:
+        active = active_input_links(t, iev)
+        if active != [0]:
+            all_ok = failed(f"pattern 1 event {iev+1}", f"active input links {active}, expected [0]")
+            continue
+        if int(nEg[iev]) < 1:
+            all_ok = failed(f"pattern 1 event {iev+1}", f"nEgNonZero={int(nEg[iev])}, expected >= 1")
+            continue
+        if int(nJet[iev]) != 0 or int(nTau[iev]) != 0 or int(nSum[iev]) != 0:
+            all_ok = failed(
+                f"pattern 1 event {iev+1}",
+                f"unexpected nonzero counts: Jet={int(nJet[iev])}, Tau={int(nTau[iev])}, Sum={int(nSum[iev])}"
+            )
+            continue
+        passed(f"pattern 1 event {iev+1}")
+
+    # pattern 2: EG + sum
+    for iev in [2, 12]:
+        active = active_input_links(t, iev)
+        if active != [0, 2]:
+            all_ok = failed(f"pattern 2 event {iev+1}", f"active input links {active}, expected [0, 2]")
+            continue
+        if int(nEg[iev]) < 1:
+            all_ok = failed(f"pattern 2 event {iev+1}", f"nEgNonZero={int(nEg[iev])}, expected >= 1")
+            continue
+        if int(nSum[iev]) < 1:
+            all_ok = failed(f"pattern 2 event {iev+1}", f"nSumNonZero={int(nSum[iev])}, expected >= 1")
+            continue
+        passed(f"pattern 2 event {iev+1}")
+
+    # pattern 3: dense ordering EG/EGiso
+    for iev in [3, 13]:
+        egvals = nonzero(eg_pt[iev])
+        egivals = nonzero(egi_pt[iev])
+        if len(egvals) < 2 or not is_desc(egvals):
+            all_ok = failed(f"pattern 3 event {iev+1}", f"EG not descending: {egvals}")
+            continue
+        if len(egivals) < 2 or not is_desc(egivals):
+            all_ok = failed(f"pattern 3 event {iev+1}", f"EGiso not descending: {egivals}")
+            continue
+        passed(f"pattern 3 event {iev+1}")
+
+    # pattern 4: both eta sides active
+    for iev in [4, 14]:
+        pos_objs = count_nonzero_by_sign(eg_pt[iev], eg_sign[iev], 1) \
+                 + count_nonzero_by_sign(jet_pt[iev], jet_sign[iev], 1) \
+                 + count_nonzero_by_sign(tau_pt[iev], tau_sign[iev], 1)
+        neg_objs = count_nonzero_by_sign(eg_pt[iev], eg_sign[iev], 0) \
+                 + count_nonzero_by_sign(jet_pt[iev], jet_sign[iev], 0) \
+                 + count_nonzero_by_sign(tau_pt[iev], tau_sign[iev], 0)
+        if pos_objs < 1 or neg_objs < 1:
+            all_ok = failed(f"pattern 4 event {iev+1}", f"pos_objs={pos_objs}, neg_objs={neg_objs}, expected both >= 1")
+            continue
+        passed(f"pattern 4 event {iev+1}")
+
+    # pattern 5: hadron/tau + sum
+    for iev in [5, 15]:
+        if int(nJet[iev]) < 1 and int(nTau[iev]) < 1:
+            all_ok = failed(f"pattern 5 event {iev+1}", f"nJetNonZero={int(nJet[iev])}, nTauNonZero={int(nTau[iev])}, expected at least one nonzero")
+            continue
+        if int(nSum[iev]) < 1:
+            all_ok = failed(f"pattern 5 event {iev+1}", f"nSumNonZero={int(nSum[iev])}, expected >= 1")
+            continue
+        passed(f"pattern 5 event {iev+1}")
+
+    # pattern 6: stitch same phi => 20 + 12 = 32, GT hwPt = 32 << 4
+    for iev in [6, 16]:
+        lead = top_nonzero(eg_pt[iev])
+        if lead != (32 << 4):
+            all_ok = failed(f"pattern 6 event {iev+1}", f"leading EG hwPt={lead}, expected {32<<4}")
+            continue
+        passed(f"pattern 6 event {iev+1}")
+
+    # pattern 7: stitch dphi=+1 => 18 + 11 = 29, GT hwPt = 29 << 4
+    for iev in [7, 17]:
+        lead = top_nonzero(eg_pt[iev])
+        if lead != (29 << 4):
+            all_ok = failed(f"pattern 7 event {iev+1}", f"leading EG hwPt={lead}, expected {29<<4}")
+            continue
+        passed(f"pattern 7 event {iev+1}")
+
+    # pattern 8: no stitch dphi>1 => leading stays 20 << 4, not 32 << 4
+    for iev in [8, 18]:
+        vals = nonzero(eg_pt[iev])
+        lead = max(vals) if vals else 0
+        if lead != (20 << 4):
+            all_ok = failed(f"pattern 8 event {iev+1}", f"leading EG hwPt={lead}, expected {20<<4}")
+            continue
+        if (32 << 4) in vals:
+            all_ok = failed(f"pattern 8 event {iev+1}", f"found stitched value {(32<<4)} in {vals}, expected no stitch")
+            continue
+        passed(f"pattern 8 event {iev+1}")
+
+    # pattern 9: sum aggregation => (5+11, 7+13, 9+17) = (16, 20, 26)
+    for iev in [9, 19]:
+        exvals = nonzero(sum_ex[iev])
+        eyvals = nonzero(sum_ey[iev])
+        htvals = nonzero(sum_ht[iev])
+        if 16 not in exvals or 20 not in eyvals or 26 not in htvals:
+            all_ok = failed(
+                f"pattern 9 event {iev+1}",
+                f"decoded sums ex={exvals}, ey={eyvals}, ht={htvals}, expected to contain 16, 20, 26"
+            )
+            continue
+        passed(f"pattern 9 event {iev+1}")
+
+    # determinism
     ok = True
     detail = ""
-    for iev in range(len(nEg)):
-        if int(nSum[iev]) > 4:  #this is because in the FW the valid bits are always 1
-            ex = nonzero(sum_ex[iev])
-            ey = nonzero(sum_ey[iev])
-            ht = nonzero(sum_ht[iev])
-            if len(ex) == 0 and len(ey) == 0 and len(ht) == 0:
+    for i in range(10):
+        for j in range(6):
+            a = tolist(t[f"linkOut{j}_words"].array()[i])
+            b = tolist(t[f"linkOut{j}_words"].array()[i + 10])
+            if a != b:
                 ok = False
-                detail = f"event {iev+1} has nSumValid={int(nSum[iev])} but all decoded sums are zero"
+                detail = f"event {i+1} != event {i+11} for linkOut{j}"
                 break
+        if not ok:
+            break
     if ok:
-        passed("decoded sum branches consistent with sum validity")
+        passed("deterministic repeat over second 10-event cycle")
     else:
-        all_ok = failed("decoded sum branches consistent with sum validity", detail)
+        all_ok = failed("deterministic repeat over second 10-event cycle", detail)
 
     if not all_ok:
         sys.exit(1)

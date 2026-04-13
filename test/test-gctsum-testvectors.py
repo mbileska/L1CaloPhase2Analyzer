@@ -15,39 +15,29 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '131X_mcRun4_realistic_v6', '')
 
-# 12 events = one 6-pattern cycle repeated twice for determinism checks
 process.maxEvents = cms.untracked.PSet(
-    input=cms.untracked.int32(12)
+    input = cms.untracked.int32(20)
 )
 
 process.source = cms.Source(
     "EmptySource",
-    firstRun=cms.untracked.uint32(1),
-    firstEvent=cms.untracked.uint32(1)
+    firstRun = cms.untracked.uint32(1),
+    firstEvent = cms.untracked.uint32(1)
 )
 
 process.MessageLogger.cerr.threshold = cms.untracked.string('INFO')
 process.MessageLogger.cerr.FwkReport = cms.untracked.PSet(
-    reportEvery=cms.untracked.int32(100)
+    reportEvery = cms.untracked.int32(100)
 )
 process.MessageLogger.cerr.default = cms.untracked.PSet(
-    limit=cms.untracked.int32(1000000)
+    limit = cms.untracked.int32(1000000)
 )
 
 process.load("L1Trigger.L1CaloTrigger.l1tGCTSumTestVectorProducer_cfi")
 process.load("L1Trigger.L1CaloTrigger.l1tPhase2L1GCTSumEmulator_cfi")
 process.load("L1Trigger.L1CaloPhase2Analyzer.l1TGCTSumAnalyzer_cfi")
 
-# Use the cyclic deterministic pattern set from the test-vector producer.
-# Pattern mapping:
-#   event 1  -> all-zero
-#   event 2  -> single positive-side EG-like object
-#   event 3  -> positive-side EG + positive-side sums
-#   event 4  -> dense positive-side pattern
-#   event 5  -> positive and negative eta both populated
-#   event 6  -> sparse hadron/tau-like pattern and a sum
-#   event 7-12 repeat 1-6
-process.gctSumTestVectorProducer.patternMode = cms.string("cyclic")
+process.gctSumTestVectorProducer.patternMode = cms.string("validation")
 process.gctSumTestVectorProducer.debug = cms.bool(False)
 
 process.phase2L1GCTSumEmulator.debug = cms.bool(False)
@@ -78,12 +68,11 @@ process.phase2L1GCTSumEmulator.inputLinks = cms.VInputTag(
     cms.InputTag("gctSumTestVectorProducer", "LinkIn23"),
 )
 
-process.l1TGCTSumAnalyzer.folderName = cms.untracked.string("GCTSumAnalyzer")
 process.l1TGCTSumAnalyzer.debug = cms.untracked.bool(False)
 
 process.TFileService = cms.Service(
     "TFileService",
-    fileName=cms.string("gctsum_testvectors.root")
+    fileName = cms.string("gctsum_testvectors.root")
 )
 
 process.GCTSUM = cms.Path(
