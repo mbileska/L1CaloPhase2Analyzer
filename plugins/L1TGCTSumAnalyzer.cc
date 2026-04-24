@@ -57,17 +57,12 @@ namespace {
     isPosEta.push_back(posEtaFlag ? 1 : 0);
   }
 
-  inline void decodeSumWord(const ap_uint<64>& word,
-                            std::vector<int>& ex,
-                            std::vector<int>& ey,
-                            std::vector<int>& ht) {
-    int sumEx = (int)word.range(16, 1);
-    int sumEy = (int)word.range(29, 17);
-    int sumHt = (int)word.range(45, 30);
+  inline int decodeScalar16Word(const ap_uint<64>& word) {
+    return (int)word.range(16, 1);
+  }
 
-    ex.push_back(sumEx >> 4);
-    ey.push_back(sumEy);
-    ht.push_back(sumHt >> 4);
+  inline int decodeScalar32Word(const ap_uint<64>& word) {
+    return (int)word.range(32, 1);
   }
 
   inline void decodeGTLinks(const std::array<ap_uint<576>, 6>& links,
@@ -87,9 +82,10 @@ namespace {
                             std::vector<int>& tau_hwEta,
                             std::vector<int>& tau_hwPhi,
                             std::vector<int>& tau_isPosEta,
-                            std::vector<int>& sum_ex,
-                            std::vector<int>& sum_ey,
-                            std::vector<int>& sum_ht) {
+                            std::vector<int>& sum_ht_pos,
+                            std::vector<int>& sum_ht_neg,
+                            std::vector<int>& sum_et2,
+                            std::vector<int>& sum_nobj) {
     for (int j = 0; j < 6; ++j)
       decodeCandidateWord(links[0].range(j * 64 + 63, j * 64), eg_hwPt, eg_hwEta, eg_hwPhi, eg_isPosEta, true);
     for (int j = 6; j < 9; ++j)
@@ -117,8 +113,10 @@ namespace {
 
     for (int j = 0; j < 3; ++j)
       decodeCandidateWord(links[5].range(j * 64 + 63, j * 64), tau_hwPt, tau_hwEta, tau_hwPhi, tau_isPosEta, false);
-    for (int j = 3; j < 7; ++j)
-      decodeSumWord(links[5].range(j * 64 + 63, j * 64), sum_ex, sum_ey, sum_ht);
+    sum_ht_pos.push_back(decodeScalar16Word(links[5].range(3 * 64 + 63, 3 * 64)));
+    sum_ht_neg.push_back(decodeScalar16Word(links[5].range(4 * 64 + 63, 4 * 64)));
+    sum_et2.push_back(decodeScalar32Word(links[5].range(5 * 64 + 63, 5 * 64)));
+    sum_nobj.push_back(decodeScalar16Word(links[5].range(6 * 64 + 63, 6 * 64)));
   }
 
   inline int countNonZero(const std::vector<int>& vals) {
@@ -194,9 +192,10 @@ L1TGCTSumAnalyzer::L1TGCTSumAnalyzer(const ParameterSet& cfg)
   gctSumTree->Branch("tau_hwPhi", &tau_hwPhi, 32000, 0);
   gctSumTree->Branch("tau_isPosEta", &tau_isPosEta, 32000, 0);
 
-  gctSumTree->Branch("sum_ex", &sum_ex, 32000, 0);
-  gctSumTree->Branch("sum_ey", &sum_ey, 32000, 0);
-  gctSumTree->Branch("sum_ht", &sum_ht, 32000, 0);
+  gctSumTree->Branch("sum_ht_pos", &sum_ht_pos, 32000, 0);
+  gctSumTree->Branch("sum_ht_neg", &sum_ht_neg, 32000, 0);
+  gctSumTree->Branch("sum_et2", &sum_et2, 32000, 0);
+  gctSumTree->Branch("sum_nobj", &sum_nobj, 32000, 0);
 
   h_nEgNonZero = tfs_->make<TH1F>("h_nEgNonZero", "Nonzero EG objects;N;Events", 13, -0.5, 12.5);
   h_nEgiNonZero = tfs_->make<TH1F>("h_nEgiNonZero", "Nonzero EGiso objects;N;Events", 13, -0.5, 12.5);
@@ -220,7 +219,10 @@ void L1TGCTSumAnalyzer::clearVectors() {
   egi_hwPt.clear(); egi_hwEta.clear(); egi_hwPhi.clear(); egi_isPosEta.clear();
   jet_hwPt.clear(); jet_hwEta.clear(); jet_hwPhi.clear(); jet_isPosEta.clear();
   tau_hwPt.clear(); tau_hwEta.clear(); tau_hwPhi.clear(); tau_isPosEta.clear();
-  sum_ex.clear(); sum_ey.clear(); sum_ht.clear();
+  sum_ht_pos.clear();
+  sum_ht_neg.clear();
+  sum_et2.clear();
+  sum_nobj.clear();
 }
 
 void L1TGCTSumAnalyzer::writeSumInputHeader() {
@@ -330,17 +332,25 @@ void L1TGCTSumAnalyzer::analyze(const Event& evt, const EventSetup& es) {
                 egi_hwPt, egi_hwEta, egi_hwPhi, egi_isPosEta,
                 jet_hwPt, jet_hwEta, jet_hwPhi, jet_isPosEta,
                 tau_hwPt, tau_hwEta, tau_hwPhi, tau_isPosEta,
-                sum_ex, sum_ey, sum_ht);
+                sum_ht_pos, sum_ht_neg, sum_et2, sum_nobj);
 
   nEgNonZero = countNonZero(eg_hwPt);
   nEgiNonZero = countNonZero(egi_hwPt);
   nJetNonZero = countNonZero(jet_hwPt);
   nTauNonZero = countNonZero(tau_hwPt);
   nSumNonZero = 0;
-  for (unsigned int i = 0; i < sum_ex.size(); ++i) {
-    if (sum_ex[i] > 0 || sum_ey[i] > 0 || sum_ht[i] > 0)
+  for (const int value : sum_ht_pos)
+    if (value > 0)
       ++nSumNonZero;
-  }
+  for (const int value : sum_ht_neg)
+    if (value > 0)
+      ++nSumNonZero;
+  for (const int value : sum_et2)
+    if (value > 0)
+      ++nSumNonZero;
+  for (const int value : sum_nobj)
+    if (value > 0)
+      ++nSumNonZero;
 
   h_nEgNonZero->Fill(nEgNonZero);
   h_nEgiNonZero->Fill(nEgiNonZero);

@@ -79,9 +79,10 @@ private:
   std::vector<int> tau_hwPhi;
   std::vector<int> tau_isPosEta;
 
-  std::vector<int> sum_ex;
-  std::vector<int> sum_ey;
-  std::vector<int> sum_ht;
+  std::vector<int> sum_ht_pos;
+  std::vector<int> sum_ht_neg;
+  std::vector<int> sum_et2;
+  std::vector<int> sum_nobj;
 
   TH1F* h_nEgNonZero;
   TH1F* h_nEgiNonZero;

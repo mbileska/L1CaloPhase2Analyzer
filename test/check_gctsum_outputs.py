@@ -71,7 +71,7 @@ def main():
         "patternId",
         "nEgNonZero", "nEgiNonZero", "nJetNonZero", "nTauNonZero", "nSumNonZero",
         "eg_hwPt", "eg_isPosEta", "egi_hwPt", "jet_hwPt", "jet_isPosEta",
-        "tau_hwPt", "tau_isPosEta", "sum_ex", "sum_ey", "sum_ht",
+        "tau_hwPt", "tau_isPosEta", "sum_ht_pos", "sum_ht_neg", "sum_et2", "sum_nobj",
     ] + [f"linkIn{i}_words" for i in range(24)] + [f"linkOut{i}_words" for i in range(6)]
 
     missing = [b for b in needed if b not in t.keys()]
@@ -96,9 +96,10 @@ def main():
     tau_pt = t["tau_hwPt"].array()
     tau_sign = t["tau_isPosEta"].array()
 
-    sum_ex = t["sum_ex"].array()
-    sum_ey = t["sum_ey"].array()
-    sum_ht = t["sum_ht"].array()
+    sum_ht_pos = t["sum_ht_pos"].array()
+    sum_ht_neg = t["sum_ht_neg"].array()
+    sum_et2 = t["sum_et2"].array()
+    sum_nobj = t["sum_nobj"].array()
 
     all_ok = True
 
@@ -257,15 +258,16 @@ def main():
             continue
         passed(f"pattern 8 event {iev+1}")
 
-    # pattern 9: sum aggregation => (5+11, 7+13, 9+17) = (16, 20, 26)
+    # pattern 9: side-reduced sum aggregation with source-hypothesis selection
     for iev in [9, 19]:
-        exvals = nonzero(sum_ex[iev])
-        eyvals = nonzero(sum_ey[iev])
-        htvals = nonzero(sum_ht[iev])
-        if 16 not in exvals or 20 not in eyvals or 26 not in htvals:
+        ht_pos_vals = nonzero(sum_ht_pos[iev])
+        ht_neg_vals = nonzero(sum_ht_neg[iev])
+        et2_vals = nonzero(sum_et2[iev])
+        nobj_vals = nonzero(sum_nobj[iev])
+        if 17 not in ht_pos_vals or 60 not in ht_neg_vals or 58301 not in et2_vals or 30 not in nobj_vals:
             all_ok = failed(
                 f"pattern 9 event {iev+1}",
-                f"decoded sums ex={exvals}, ey={eyvals}, ht={htvals}, expected to contain 16, 20, 26"
+                f"decoded sums ht_pos={ht_pos_vals}, ht_neg={ht_neg_vals}, et2={et2_vals}, nobj={nobj_vals}, expected 17, 60, 58301, 30"
             )
             continue
         passed(f"pattern 9 event {iev+1}")
