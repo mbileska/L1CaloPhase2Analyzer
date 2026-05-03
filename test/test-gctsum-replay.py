@@ -1,21 +1,43 @@
 import FWCore.ParameterSet.Config as cms
 import FWCore.ParameterSet.VarParsing as VarParsing
-
+import re
 from Configuration.StandardSequences.Eras import eras
 
 
-def count_events(path, words_per_event=9):
+def count_events(path, words_per_event=9, expected_columns=25):
     rows = 0
+    wordcnt_re = re.compile(r"^(0x)?[0-9a-fA-F]+$")
+
     with open(path, "r", encoding="utf-8") as handle:
-        for line in handle:
+        for line_number, line in enumerate(handle, start=1):
             stripped = line.strip()
+
             if not stripped or stripped.startswith("#"):
                 continue
+
+            tokens = stripped.split()
+
+            # Skip column header, e.g.
+            # WordCnt POS_0 POS_1 ... NEG_11
+            if not wordcnt_re.match(tokens[0]):
+                continue
+
+            # A real GCTSUM input row should be:
+            # WordCnt + 24 input links = 25 columns
+            if len(tokens) != expected_columns:
+                raise RuntimeError(
+                    f"Malformed data row in {path} at line {line_number}: "
+                    f"expected {expected_columns} columns, got {len(tokens)}"
+                )
+
             rows += 1
+
     if rows % words_per_event != 0:
         raise RuntimeError(
-            f"Input file {path} has {rows} data rows, which is not divisible by {words_per_event}"
+            f"Input file {path} has {rows} data rows, "
+            f"which is not divisible by {words_per_event}"
         )
+
     return rows // words_per_event
 
 options = VarParsing.VarParsing("analysis")
