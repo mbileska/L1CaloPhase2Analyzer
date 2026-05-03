@@ -126,32 +126,42 @@ namespace {
 
 L1TGCTSumAnalyzer::L1TGCTSumAnalyzer(const ParameterSet& cfg)
     : debug_(cfg.getUntrackedParameter<bool>("debug", false)),
-      sumInputDumpFile_(cfg.getUntrackedParameter<std::string>(
-          "sumInputDumpFile",
-          "/afs/hep.wisc.edu/home/mbileska/apx-fs-r2-gctsum/xF13P/AlgoSRC/SUM_IP/dummy_sum_input.txt")),
-      cmsswGtOutputDumpFile_(cfg.getUntrackedParameter<std::string>(
-          "cmsswGtOutputDumpFile",
-          "/afs/hep.wisc.edu/home/mbileska/apx-fs-r2-gctsum/xF13P/AlgoSRC/TO_GT_IP/cmssw_gt_output.txt")) {
+	      sumInputDumpFile_(cfg.getUntrackedParameter<std::string>(
+	          "sumInputDumpFile",
+	          "/afs/hep.wisc.edu/home/mbileska/apx-fs-r2-gctsum/xF13P/AlgoSRC/SUM_IP/dummy_sum_input.txt")),
+	      cmsswSumOutputDumpFile_(cfg.getUntrackedParameter<std::string>(
+	          "cmsswSumOutputDumpFile",
+	          "/afs/hep.wisc.edu/home/mbileska/apx-fs-r2-gctsum/xF13P/AlgoSRC/SUM_IP/cmssw_sum_output.txt")),
+	      cmsswGtOutputDumpFile_(cfg.getUntrackedParameter<std::string>(
+	          "cmsswGtOutputDumpFile",
+	          "/afs/hep.wisc.edu/home/mbileska/apx-fs-r2-gctsum/xF13P/AlgoSRC/TO_GT_IP/cmssw_gt_output.txt")) {
   usesResource("TFileService");
 
   folderName_ = cfg.getUntrackedParameter<std::string>("folderName");
 
-  const std::vector<edm::InputTag> inputLinks = cfg.getParameter<std::vector<edm::InputTag> >("inputLinks");
-  const std::vector<edm::InputTag> outputLinks = cfg.getParameter<std::vector<edm::InputTag> >("outputLinks");
+	  const std::vector<edm::InputTag> inputLinks = cfg.getParameter<std::vector<edm::InputTag> >("inputLinks");
+	  const std::vector<edm::InputTag> sumOutputLinks = cfg.getParameter<std::vector<edm::InputTag> >("sumOutputLinks");
+	  const std::vector<edm::InputTag> outputLinks = cfg.getParameter<std::vector<edm::InputTag> >("outputLinks");
 
   if (inputLinks.size() != 24) {
     throw cms::Exception("L1TGCTSumAnalyzer") << "Expected 24 input link tags";
   }
-  if (outputLinks.size() != 6) {
-    throw cms::Exception("L1TGCTSumAnalyzer") << "Expected 6 output link tags";
-  }
+	  if (outputLinks.size() != 6) {
+	    throw cms::Exception("L1TGCTSumAnalyzer") << "Expected 6 output link tags";
+	  }
+	  if (sumOutputLinks.size() != 6) {
+	    throw cms::Exception("L1TGCTSumAnalyzer") << "Expected 6 SUM_IP output link tags";
+	  }
 
-  for (unsigned int i = 0; i < 24; ++i) {
-    inputLinkSrc_[i] = consumes<std::vector<uint64_t> >(inputLinks[i]);
-  }
-  for (unsigned int i = 0; i < 6; ++i) {
-    outputLinkSrc_[i] = consumes<std::vector<uint64_t> >(outputLinks[i]);
-  }
+	  for (unsigned int i = 0; i < 24; ++i) {
+	    inputLinkSrc_[i] = consumes<std::vector<uint64_t> >(inputLinks[i]);
+	  }
+	  for (unsigned int i = 0; i < 6; ++i) {
+	    sumOutputLinkSrc_[i] = consumes<std::vector<uint64_t> >(sumOutputLinks[i]);
+	  }
+	  for (unsigned int i = 0; i < 6; ++i) {
+	    outputLinkSrc_[i] = consumes<std::vector<uint64_t> >(outputLinks[i]);
+	  }
 
   gctSumTree = tfs_->make<TTree>("gctSumTree", "GCT SumCard IO Tree");
   gctSumTree->Branch("run", &run, "run/I");
@@ -165,12 +175,15 @@ L1TGCTSumAnalyzer::L1TGCTSumAnalyzer(const ParameterSet& cfg)
   gctSumTree->Branch("nTauNonZero", &nTauNonZero, "nTauNonZero/I");
   gctSumTree->Branch("nSumNonZero", &nSumNonZero, "nSumNonZero/I");
 
-  for (unsigned int i = 0; i < 24; ++i) {
-    gctSumTree->Branch((std::string("linkIn") + std::to_string(i) + "_words").c_str(), &linkIn_words[i], 32000, 0);
-  }
-  for (unsigned int i = 0; i < 6; ++i) {
-    gctSumTree->Branch((std::string("linkOut") + std::to_string(i) + "_words").c_str(), &linkOut_words[i], 32000, 0);
-  }
+	  for (unsigned int i = 0; i < 24; ++i) {
+	    gctSumTree->Branch((std::string("linkIn") + std::to_string(i) + "_words").c_str(), &linkIn_words[i], 32000, 0);
+	  }
+	  for (unsigned int i = 0; i < 6; ++i) {
+	    gctSumTree->Branch((std::string("sumLinkOut") + std::to_string(i) + "_words").c_str(), &sumLinkOut_words[i], 32000, 0);
+	  }
+	  for (unsigned int i = 0; i < 6; ++i) {
+	    gctSumTree->Branch((std::string("linkOut") + std::to_string(i) + "_words").c_str(), &linkOut_words[i], 32000, 0);
+	  }
 
   gctSumTree->Branch("eg_hwPt", &eg_hwPt, 32000, 0);
   gctSumTree->Branch("eg_hwEta", &eg_hwEta, 32000, 0);
@@ -205,15 +218,18 @@ L1TGCTSumAnalyzer::L1TGCTSumAnalyzer(const ParameterSet& cfg)
 }
 
 void L1TGCTSumAnalyzer::beginJob() {
-  writeSumInputHeader();
-  writeCmsswGtOutputHeader();
-}
+	  writeSumInputHeader();
+	  writeCmsswSumOutputHeader();
+	  writeCmsswGtOutputHeader();
+	}
 
 void L1TGCTSumAnalyzer::clearVectors() {
-  for (auto& v : linkIn_words)
-    v.clear();
-  for (auto& v : linkOut_words)
-    v.clear();
+	  for (auto& v : linkIn_words)
+	    v.clear();
+	  for (auto& v : sumLinkOut_words)
+	    v.clear();
+	  for (auto& v : linkOut_words)
+	    v.clear();
 
   eg_hwPt.clear(); eg_hwEta.clear(); eg_hwPhi.clear(); eg_isPosEta.clear();
   egi_hwPt.clear(); egi_hwEta.clear(); egi_hwPhi.clear(); egi_isPosEta.clear();
@@ -234,12 +250,19 @@ void L1TGCTSumAnalyzer::writeSumInputHeader() {
       out << "                  ";
   }
   out << "\n#BeginData\n";
-  out.close();
-}
+	  out.close();
+	}
+
+void L1TGCTSumAnalyzer::writeCmsswSumOutputHeader() {
+	  std::ofstream out(cmsswSumOutputDumpFile_, std::ios::out);
+	  out << "WordCnt           SUM_POS_0           SUM_POS_1           SUM_POS_2           SUM_NEG_0           SUM_NEG_1           SUM_NEG_2\n";
+	  out << "#BeginData\n";
+	  out.close();
+	}
 
 void L1TGCTSumAnalyzer::writeCmsswGtOutputHeader() {
-  std::ofstream out(cmsswGtOutputDumpFile_, std::ios::out);
-  out << "WordCnt               T118                T119                T120                T121                T122                T123\n";
+	  std::ofstream out(cmsswGtOutputDumpFile_, std::ios::out);
+	  out << "WordCnt               T118                T119                T120                T121                T122                T123\n";
   out << "#BeginData\n";
   out.close();
 }
@@ -274,11 +297,27 @@ void L1TGCTSumAnalyzer::appendSumInputEvent(const std::array<std::vector<unsigne
     out << "\n";
   }
 
-  out.close();
-}
+	  out.close();
+	}
+
+void L1TGCTSumAnalyzer::appendCmsswSumOutputEvent(const std::array<std::vector<unsigned long long>, 6>& outWords) {
+	  std::ofstream out(cmsswSumOutputDumpFile_, std::ios::app);
+
+	  for (int row = 0; row < 9; ++row) {
+	    out << std::setw(4) << std::setfill('0') << std::hex << row << "        ";
+	    for (int col = 0; col < 6; ++col) {
+	      out << std::nouppercase << std::setw(16) << std::setfill('0') << std::hex << outWords[col][row];
+	      if (col != 5)
+	        out << "      ";
+	    }
+	    out << "\n";
+	  }
+
+	  out.close();
+	}
 
 void L1TGCTSumAnalyzer::appendCmsswGtOutputEvent(const std::array<std::vector<unsigned long long>, 6>& outWords) {
-  std::ofstream out(cmsswGtOutputDumpFile_, std::ios::app);
+	  std::ofstream out(cmsswGtOutputDumpFile_, std::ios::app);
 
   for (int row = 0; row < 9; ++row) {
     out << std::setw(4) << std::setfill('0') << std::hex << row << "        ";
@@ -316,9 +355,19 @@ void L1TGCTSumAnalyzer::analyze(const Event& evt, const EventSetup& es) {
     }
   }
 
-  for (unsigned int i = 0; i < 6; ++i) {
-    edm::Handle<std::vector<uint64_t> > handle;
-    evt.getByToken(outputLinkSrc_[i], handle);
+	  for (unsigned int i = 0; i < 6; ++i) {
+	    edm::Handle<std::vector<uint64_t> > handle;
+	    evt.getByToken(sumOutputLinkSrc_[i], handle);
+	    if (handle.isValid()) {
+	      sumLinkOut_words[i] = unpack576ToWords(packWordsTo576(*handle));
+	    } else {
+	      sumLinkOut_words[i] = std::vector<unsigned long long>(9, 0ULL);
+	    }
+	  }
+
+	  for (unsigned int i = 0; i < 6; ++i) {
+	    edm::Handle<std::vector<uint64_t> > handle;
+	    evt.getByToken(outputLinkSrc_[i], handle);
     if (handle.isValid()) {
       outLinks[i] = packWordsTo576(*handle);
       linkOut_words[i] = unpack576ToWords(outLinks[i]);
@@ -358,8 +407,9 @@ void L1TGCTSumAnalyzer::analyze(const Event& evt, const EventSetup& es) {
   h_nTauNonZero->Fill(nTauNonZero);
   h_nSumNonZero->Fill(nSumNonZero);
 
-  appendSumInputEvent(linkIn_words);
-  appendCmsswGtOutputEvent(linkOut_words);
+	  appendSumInputEvent(linkIn_words);
+	  appendCmsswSumOutputEvent(sumLinkOut_words);
+	  appendCmsswGtOutputEvent(linkOut_words);
 
   if (debug_) {
     edm::LogVerbatim("L1TGCTSumAnalyzer") << "event=" << event

@@ -8,6 +8,9 @@ l1TGCTSumAnalyzer = cms.EDAnalyzer(
     sumInputDumpFile = cms.untracked.string(
         "/afs/hep.wisc.edu/home/mbileska/apx-fs-r2-gctsum/xF13P/AlgoSRC/SUM_IP/dummy_sum_input.txt"
     ),
+    cmsswSumOutputDumpFile = cms.untracked.string(
+        "/afs/hep.wisc.edu/home/mbileska/apx-fs-r2-gctsum/xF13P/AlgoSRC/SUM_IP/cmssw_sum_output.txt"
+    ),
     cmsswGtOutputDumpFile = cms.untracked.string(
         "/afs/hep.wisc.edu/home/mbileska/apx-fs-r2-gctsum/xF13P/AlgoSRC/TO_GT_IP/cmssw_gt_output.txt"
     ),
@@ -37,6 +40,15 @@ l1TGCTSumAnalyzer = cms.EDAnalyzer(
         cms.InputTag("gctSumTestVectorProducer", "LinkIn21"),
         cms.InputTag("gctSumTestVectorProducer", "LinkIn22"),
         cms.InputTag("gctSumTestVectorProducer", "LinkIn23"),
+    ),
+
+    sumOutputLinks = cms.VInputTag(
+        cms.InputTag("phase2L1GCTSumEmulator", "SumLinkOut0"),
+        cms.InputTag("phase2L1GCTSumEmulator", "SumLinkOut1"),
+        cms.InputTag("phase2L1GCTSumEmulator", "SumLinkOut2"),
+        cms.InputTag("phase2L1GCTSumEmulator", "SumLinkOut3"),
+        cms.InputTag("phase2L1GCTSumEmulator", "SumLinkOut4"),
+        cms.InputTag("phase2L1GCTSumEmulator", "SumLinkOut5"),
     ),
 
     outputLinks = cms.VInputTag(

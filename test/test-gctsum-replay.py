@@ -4,7 +4,7 @@ import re
 from Configuration.StandardSequences.Eras import eras
 
 
-def count_events(path, words_per_event=9, expected_columns=25):
+def count_events(path, words_per_event=9, expected_min_columns=25):
     rows = 0
     wordcnt_re = re.compile(r"^(0x)?[0-9a-fA-F]+$")
 
@@ -22,12 +22,10 @@ def count_events(path, words_per_event=9, expected_columns=25):
             if not wordcnt_re.match(tokens[0]):
                 continue
 
-            # A real GCTSUM input row should be:
-            # WordCnt + 24 input links = 25 columns
-            if len(tokens) != expected_columns:
+            if len(tokens) < expected_min_columns:
                 raise RuntimeError(
                     f"Malformed data row in {path} at line {line_number}: "
-                    f"expected {expected_columns} columns, got {len(tokens)}"
+                    f"expected at least {expected_min_columns} columns, got {len(tokens)}"
                 )
 
             rows += 1
@@ -67,6 +65,13 @@ options.register(
     "Text dump of the CMSSW GT-link outputs",
 )
 options.register(
+    "sumOutputDumpFile",
+    "gctsum_replay_sum_output.txt",
+    VarParsing.VarParsing.multiplicity.singleton,
+    VarParsing.VarParsing.varType.string,
+    "Text dump of the CMSSW SUM_IP output links",
+)
+options.register(
     "posOffset",
     0,
     VarParsing.VarParsing.multiplicity.singleton,
@@ -99,7 +104,10 @@ options.parseArguments()
 if not options.inputFile:
     raise RuntimeError("Pass inputFile=/path/to/GCTSUM_TV_*.txt or another compatible GCT Sum vector file")
 
-default_max_events = count_events(options.inputFile)
+default_max_events = count_events(
+    options.inputFile,
+    expected_min_columns=1 + max(options.posOffset + 12, options.negOffset + 12),
+)
 
 process = cms.Process("GCTSUMREPLAY", eras.Phase2C17I13M9)
 
@@ -154,8 +162,15 @@ process.phase2L1GCTSumEmulator.inputLinks = replayInputTags
 
 process.l1TGCTSumAnalyzer.debug = cms.untracked.bool(False)
 process.l1TGCTSumAnalyzer.sumInputDumpFile = cms.untracked.string(options.sumInputDumpFile)
+process.l1TGCTSumAnalyzer.cmsswSumOutputDumpFile = cms.untracked.string(options.sumOutputDumpFile)
 process.l1TGCTSumAnalyzer.cmsswGtOutputDumpFile = cms.untracked.string(options.gtOutputDumpFile)
 process.l1TGCTSumAnalyzer.inputLinks = replayInputTags
+process.l1TGCTSumAnalyzer.sumOutputLinks = cms.VInputTag(
+    *[
+        cms.InputTag("phase2L1GCTSumEmulator", f"SumLinkOut{i}")
+        for i in range(6)
+    ]
+)
 process.l1TGCTSumAnalyzer.outputLinks = cms.VInputTag(
     *[
         cms.InputTag("phase2L1GCTSumEmulator", f"LinkOut{i}")

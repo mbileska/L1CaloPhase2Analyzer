@@ -26,20 +26,24 @@ public:
   void endJob() override;
 
 private:
-  void clearVectors();
-  void writeSumInputHeader();
-  void writeCmsswGtOutputHeader();
-  void appendSumInputEvent(const std::array<std::vector<unsigned long long>, 24>& inWords);
-  void appendCmsswGtOutputEvent(const std::array<std::vector<unsigned long long>, 6>& outWords);
+	  void clearVectors();
+	  void writeSumInputHeader();
+	  void writeCmsswSumOutputHeader();
+	  void writeCmsswGtOutputHeader();
+	  void appendSumInputEvent(const std::array<std::vector<unsigned long long>, 24>& inWords);
+	  void appendCmsswSumOutputEvent(const std::array<std::vector<unsigned long long>, 6>& outWords);
+	  void appendCmsswGtOutputEvent(const std::array<std::vector<unsigned long long>, 6>& outWords);
 
-  std::array<edm::EDGetTokenT<std::vector<uint64_t>>, 24> inputLinkSrc_;
-  std::array<edm::EDGetTokenT<std::vector<uint64_t>>, 6> outputLinkSrc_;
+	  std::array<edm::EDGetTokenT<std::vector<uint64_t>>, 24> inputLinkSrc_;
+	  std::array<edm::EDGetTokenT<std::vector<uint64_t>>, 6> sumOutputLinkSrc_;
+	  std::array<edm::EDGetTokenT<std::vector<uint64_t>>, 6> outputLinkSrc_;
 
   std::string folderName_;
   bool debug_;
 
-  std::string sumInputDumpFile_;
-  std::string cmsswGtOutputDumpFile_;
+	  std::string sumInputDumpFile_;
+	  std::string cmsswSumOutputDumpFile_;
+	  std::string cmsswGtOutputDumpFile_;
 
   edm::Service<TFileService> tfs_;
 
@@ -56,8 +60,9 @@ private:
   int nTauNonZero;
   int nSumNonZero;
 
-  std::array<std::vector<unsigned long long>, 24> linkIn_words;
-  std::array<std::vector<unsigned long long>, 6> linkOut_words;
+	  std::array<std::vector<unsigned long long>, 24> linkIn_words;
+	  std::array<std::vector<unsigned long long>, 6> sumLinkOut_words;
+	  std::array<std::vector<unsigned long long>, 6> linkOut_words;
 
   std::vector<int> eg_hwPt;
   std::vector<int> eg_hwEta;

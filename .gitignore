@@ -1,3 +1,4 @@
 *~
 *.root
 *.pyc
+gctsum_mc_*.txt

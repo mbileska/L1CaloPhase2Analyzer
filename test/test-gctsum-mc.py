@@ -24,6 +24,13 @@ options.register(
     VarParsing.VarParsing.varType.string,
     "Text dump of the CMSSW GT-link outputs",
 )
+options.register(
+    "sumOutputDumpFile",
+    "gctsum_mc_sum_output.txt",
+    VarParsing.VarParsing.multiplicity.singleton,
+    VarParsing.VarParsing.varType.string,
+    "Text dump of the CMSSW SUM_IP output links",
+)
 options.parseArguments()
 
 
@@ -92,8 +99,15 @@ process.phase2L1GCTSumEmulator.inputLinks = packedInputTags
 
 process.l1TGCTSumAnalyzer.debug = cms.untracked.bool(False)
 process.l1TGCTSumAnalyzer.sumInputDumpFile = cms.untracked.string(options.sumInputDumpFile)
+process.l1TGCTSumAnalyzer.cmsswSumOutputDumpFile = cms.untracked.string(options.sumOutputDumpFile)
 process.l1TGCTSumAnalyzer.cmsswGtOutputDumpFile = cms.untracked.string(options.gtOutputDumpFile)
 process.l1TGCTSumAnalyzer.inputLinks = packedInputTags
+process.l1TGCTSumAnalyzer.sumOutputLinks = cms.VInputTag(
+    *[
+        cms.InputTag("phase2L1GCTSumEmulator", f"SumLinkOut{i}")
+        for i in range(6)
+    ]
+)
 process.l1TGCTSumAnalyzer.outputLinks = cms.VInputTag(
     *[
         cms.InputTag("phase2L1GCTSumEmulator", f"LinkOut{i}")
