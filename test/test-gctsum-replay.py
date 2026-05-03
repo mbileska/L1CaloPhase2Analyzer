@@ -18,8 +18,8 @@ def count_events(path, words_per_event=9):
         )
     return rows // words_per_event
 
-
 options = VarParsing.VarParsing("analysis")
+
 options.register(
     "inputFile",
     "",
@@ -27,13 +27,9 @@ options.register(
     VarParsing.VarParsing.varType.string,
     "Path to the GCT Sum input vector file",
 )
-options.register(
-    "outputFile",
-    "gctsum_replay.root",
-    VarParsing.VarParsing.multiplicity.singleton,
-    VarParsing.VarParsing.varType.string,
-    "ROOT file written by TFileService",
-)
+
+options.outputFile = "gctsum_replay.root"
+
 options.register(
     "sumInputDumpFile",
     "gctsum_replay_sum_input.txt",
