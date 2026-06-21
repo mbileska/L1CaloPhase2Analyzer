@@ -5,15 +5,9 @@ l1TGCTSumAnalyzer = cms.EDAnalyzer(
     folderName = cms.untracked.string("GCTSumAnalyzer"),
     debug = cms.untracked.bool(False),
 
-    sumInputDumpFile = cms.untracked.string(
-        "/afs/hep.wisc.edu/home/mbileska/apx-fs-r2-gctsum/xF13P/AlgoSRC/SUM_IP/dummy_sum_input.txt"
-    ),
-    cmsswSumOutputDumpFile = cms.untracked.string(
-        "/afs/hep.wisc.edu/home/mbileska/apx-fs-r2-gctsum/xF13P/AlgoSRC/SUM_IP/cmssw_sum_output.txt"
-    ),
-    cmsswGtOutputDumpFile = cms.untracked.string(
-        "/afs/hep.wisc.edu/home/mbileska/apx-fs-r2-gctsum/xF13P/AlgoSRC/TO_GT_IP/cmssw_gt_output.txt"
-    ),
+    sumInputDumpFile = cms.untracked.string("gctsum_input.txt"),
+    cmsswSumOutputDumpFile = cms.untracked.string("gctsum_sum_output.txt"),
+    cmsswGtOutputDumpFile = cms.untracked.string("gctsum_gt_output.txt"),
 
     inputLinks = cms.VInputTag(
         cms.InputTag("gctSumTestVectorProducer", "LinkIn0"),

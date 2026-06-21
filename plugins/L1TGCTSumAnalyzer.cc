@@ -128,13 +128,13 @@ L1TGCTSumAnalyzer::L1TGCTSumAnalyzer(const ParameterSet& cfg)
     : debug_(cfg.getUntrackedParameter<bool>("debug", false)),
 	      sumInputDumpFile_(cfg.getUntrackedParameter<std::string>(
 	          "sumInputDumpFile",
-	          "/afs/hep.wisc.edu/home/mbileska/apx-fs-r2-gctsum/xF13P/AlgoSRC/SUM_IP/dummy_sum_input.txt")),
+	          "gctsum_input.txt")),
 	      cmsswSumOutputDumpFile_(cfg.getUntrackedParameter<std::string>(
 	          "cmsswSumOutputDumpFile",
-	          "/afs/hep.wisc.edu/home/mbileska/apx-fs-r2-gctsum/xF13P/AlgoSRC/SUM_IP/cmssw_sum_output.txt")),
+	          "gctsum_sum_output.txt")),
 	      cmsswGtOutputDumpFile_(cfg.getUntrackedParameter<std::string>(
 	          "cmsswGtOutputDumpFile",
-	          "/afs/hep.wisc.edu/home/mbileska/apx-fs-r2-gctsum/xF13P/AlgoSRC/TO_GT_IP/cmssw_gt_output.txt")) {
+	          "gctsum_gt_output.txt")) {
   usesResource("TFileService");
 
   folderName_ = cfg.getUntrackedParameter<std::string>("folderName");

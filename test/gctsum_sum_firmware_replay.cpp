@@ -1,0 +1,97 @@
+#include <ap_int.h>
+
+#include <array>
+#include <cctype>
+#include <cstdint>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
+
+#include "algo_top.h"
+
+namespace {
+constexpr unsigned int kInputLinks = 24;
+constexpr unsigned int kLinksPerSide = 12;
+constexpr unsigned int kOutputLinks = 6;
+constexpr unsigned int kWordsPerLink = 9;
+
+bool dataLine(const std::string& line) {
+  std::istringstream input(line);
+  std::string token;
+  input >> token;
+  if (token.empty() || token[0] == '#') return false;
+  for (char c : token) {
+    if (std::isxdigit(static_cast<unsigned char>(c)) == 0) return false;
+  }
+  return true;
+}
+}  // namespace
+
+int main(int argc, char** argv) {
+  if (argc != 3) {
+    std::cerr << "Usage: gctsum_sum_firmware_replay INPUT OUTPUT\n";
+    return 2;
+  }
+  std::ifstream input(argv[1]);
+  if (!input.is_open()) {
+    std::cerr << "Could not open " << argv[1] << '\n';
+    return 2;
+  }
+
+  using Row = std::array<uint64_t, kInputLinks>;
+  std::vector<Row> rows;
+  std::string line;
+  while (std::getline(input, line)) {
+    if (!dataLine(line)) continue;
+    std::istringstream parser(line);
+    std::string token;
+    parser >> token;
+    Row row{};
+    for (unsigned int link = 0; link < kInputLinks; ++link) {
+      if (!(parser >> token)) {
+        std::cerr << "Input row has fewer than 24 links\n";
+        return 2;
+      }
+      row[link] = std::stoull(token, nullptr, 16);
+    }
+    rows.push_back(row);
+  }
+  if (rows.empty() || rows.size() % kWordsPerLink != 0) {
+    std::cerr << "Input must contain a nonzero multiple of 9 data rows\n";
+    return 2;
+  }
+
+  std::ofstream output(argv[2]);
+  output << "WordCnt";
+  for (unsigned int link = 0; link < kOutputLinks; ++link) output << "    OUT_" << link;
+  output << "\n#BeginData\n";
+
+  for (unsigned int event = 0; event < rows.size() / kWordsPerLink; ++event) {
+    ap_uint<576> positiveInput[kLinksPerSide] = {};
+    ap_uint<576> negativeInput[kLinksPerSide] = {};
+    ap_uint<576> positiveOutput[3] = {};
+    ap_uint<576> negativeOutput[3] = {};
+    for (unsigned int word = 0; word < kWordsPerLink; ++word) {
+      for (unsigned int link = 0; link < kLinksPerSide; ++link) {
+        positiveInput[link].range(word * 64 + 63, word * 64) = rows[event * kWordsPerLink + word][link];
+        negativeInput[link].range(word * 64 + 63, word * 64) =
+            rows[event * kWordsPerLink + word][kLinksPerSide + link];
+      }
+    }
+    algo_top(positiveInput, positiveOutput);
+    algo_top(negativeInput, negativeOutput);
+    for (unsigned int word = 0; word < kWordsPerLink; ++word) {
+      output << std::setw(4) << std::setfill('0') << std::hex << word;
+      for (unsigned int link = 0; link < kOutputLinks; ++link) {
+        const ap_uint<576>& source = link < 3 ? positiveOutput[link] : negativeOutput[link - 3];
+        output << "    " << std::setw(16) << std::setfill('0') << std::nouppercase
+               << source.range(word * 64 + 63, word * 64).to_uint64();
+      }
+      output << '\n';
+    }
+  }
+  return 0;
+}

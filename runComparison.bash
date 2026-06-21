@@ -5,111 +5,72 @@ usage() {
   cat <<'EOF'
 Usage: ./runComparison.bash [--skip-cmsrun]
 
-Runs the GCT Sum CMSSW analyzer, replays the SUM_IP and TO_GT_IP firmware C++
-models, and compares the CMSSW GT-link output against the firmware replay.
-
-Options:
-  --skip-cmsrun  Reuse existing gctsum_mc_sum_input.txt and
-                 gctsum_mc_gt_output.txt from this analyzer directory.
+Runs the GCTSum CMSSW analyzer, replays SUM_IP and TO_GT_IP from gcts-clean,
+and compares all six final GT links word-for-word.
 
 Environment overrides:
-  CMSSW_DIR        CMSSW release directory. Defaults to this package's release.
-  INPUT_ROOT       Input ROOT file passed to test/test-gctsum-mc.py.
-  MAX_EVENTS       Number of events for cmsRun. Defaults to 100.
-  APXROOT          apx-fs-r2-gctsum_wip directory. Defaults to
-                   $HOME/apx-fs-r2-gctsum_wip.
-  XFDIR            xF13P directory. Defaults to $APXROOT/xF13P.
-  HLS_INCLUDE_DIR  HLS include directory.
+  CMSSW_DIR        CMSSW release directory (derived from this package).
+  INPUT_ROOT       MC ROOT file passed to test/test-gctsum-mc.py.
+  MAX_EVENTS       cmsRun event count (default: 100).
+  APXROOT          apx-fs-r2-gctsum_wip checkout (sibling of CMSSW_DIR).
+  GCTSUM_REF       firmware Git ref (default: gcts-clean).
+  HLS_INCLUDE_DIR  directory containing Xilinx ap_int.h.
 EOF
 }
 
-RUN_CMSRUN=1
+run_cmsrun=1
 case "${1:-}" in
-  "")
-    ;;
-  "--skip-cmsrun")
-    RUN_CMSRUN=0
-    ;;
-  "-h"|"--help")
-    usage
-    exit 0
-    ;;
-  *)
-    echo "Unknown option: $1" >&2
-    usage >&2
-    exit 2
-    ;;
+  "") ;;
+  --skip-cmsrun) run_cmsrun=0 ;;
+  -h|--help) usage; exit 0 ;;
+  *) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
 esac
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DEFAULT_CMSSW_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-
-CMSSW_DIR="${CMSSW_DIR:-$DEFAULT_CMSSW_DIR}"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+default_cmssw_dir="$(cd "$script_dir/../../.." && pwd)"
+CMSSW_DIR="${CMSSW_DIR:-$default_cmssw_dir}"
+APXROOT="${APXROOT:-$(dirname "$CMSSW_DIR")/apx-fs-r2-gctsum_wip}"
+GCTSUM_REF="${GCTSUM_REF:-gcts-clean}"
 INPUT_ROOT="${INPUT_ROOT:-file:///hdfs/store/user/rsimeon/MCFiles/001ebf5f-b83c-43fc-997f-c2e5ecf1f9dd.root}"
 MAX_EVENTS="${MAX_EVENTS:-100}"
+HLS_INCLUDE_DIR="${HLS_INCLUDE_DIR:-}"
 
-APXROOT="${APXROOT:-$HOME/apx-fs-r2-gctsum_wip}"
-XFDIR="${XFDIR:-$APXROOT/xF13P}"
-HLS_INCLUDE_DIR="${HLS_INCLUDE_DIR:-/cvmfs/cms.cern.ch/el9_amd64_gcc12/external/hls/2019.08-e6beae7d560007d8bb20c2cf88bfde9a/include}"
+[[ -d "$CMSSW_DIR/src" ]] || { echo "Invalid CMSSW_DIR: $CMSSW_DIR" >&2; exit 1; }
+git -C "$APXROOT" rev-parse --verify "${GCTSUM_REF}^{commit}" >/dev/null
 
 if ! command -v cmsenv >/dev/null 2>&1; then
-  # Define cmsenv when the script is run from a plain shell.
   set +u
   source /cvmfs/cms.cern.ch/cmsset_default.sh
   set -u
 fi
 
-if [[ ! -d "$CMSSW_DIR/src" ]]; then
-  echo "CMSSW_DIR does not look like a CMSSW release: $CMSSW_DIR" >&2
-  exit 1
-fi
-
-if [[ ! -d "$XFDIR" ]]; then
-  echo "XFDIR does not exist: $XFDIR" >&2
-  echo "Set APXROOT or XFDIR before running this script." >&2
-  exit 1
-fi
-
-if [[ ! -d "$HLS_INCLUDE_DIR" ]]; then
-  echo "HLS_INCLUDE_DIR does not exist: $HLS_INCLUDE_DIR" >&2
-  exit 1
-fi
-
 cd "$CMSSW_DIR/src"
 cmsenv
-scram b -j 8
+scram b -j "${BUILD_JOBS:-8}"
 
-if [[ "$RUN_CMSRUN" -eq 1 ]]; then
-  cd "$CMSSW_DIR/src/L1Trigger/L1CaloPhase2Analyzer"
+cd "$script_dir"
+if [[ "$run_cmsrun" -eq 1 ]]; then
   cmsRun test/test-gctsum-mc.py \
     inputFiles="$INPUT_ROOT" \
     outputFile=gctsum_mc.root \
     sumInputDumpFile=gctsum_mc_sum_input.txt \
+    sumOutputDumpFile=gctsum_mc_sum_output.txt \
     gtOutputDumpFile=gctsum_mc_gt_output.txt \
     maxEvents="$MAX_EVENTS"
 fi
 
-cd "$CMSSW_DIR/src"
-cmsenv
-
-export ANALYZER_DIR="$CMSSW_BASE/src/L1Trigger/L1CaloPhase2Analyzer"
-
-export CMSSW_SUM_IN32="$ANALYZER_DIR/gctsum_mc_sum_input.txt"
-export CMSSW_GT_OUT="$ANALYZER_DIR/gctsum_mc_gt_output.txt"
-
-export SUM_IN24="$XFDIR/testing/out/gctsum_mc_sum_input_24links.txt"
-export SUMIP_OUT="$XFDIR/testing/out/gctsum_mc_sumip_chain_cpp.txt"
-export TOGT_OUT="$XFDIR/testing/out/gctsum_mc_togtip_chain_cpp.txt"
-
-for required_file in "$CMSSW_SUM_IN32" "$CMSSW_GT_OUT"; do
-  if [[ ! -f "$required_file" ]]; then
-    echo "Required CMSSW analyzer output is missing: $required_file" >&2
-    echo "Run without --skip-cmsrun, or provide the expected dump file." >&2
-    exit 1
-  fi
+for file in gctsum_mc_sum_input.txt gctsum_mc_gt_output.txt; do
+  [[ -f "$file" ]] || { echo "Missing analyzer output: $script_dir/$file" >&2; exit 1; }
 done
 
-mkdir -p "$XFDIR/testing/build" "$XFDIR/testing/out"
+build_dir="$(mktemp -d "${TMPDIR:-/tmp}/gctsum-cmssw-compare.XXXXXX")"
+trap 'rm -rf "$build_dir"' EXIT
+git -C "$APXROOT" archive "$GCTSUM_REF" targets/xF13P | tar -x -C "$build_dir"
+xfdir="$build_dir/targets/xF13P"
+
+sum_in24="$build_dir/gctsum_mc_sum_input_24links.txt"
+sumip_out="$build_dir/gctsum_mc_sumip_firmware.txt"
+togt_out="$build_dir/gctsum_mc_togt_firmware.txt"
 
 awk '
 BEGIN {
@@ -124,44 +85,36 @@ $1 ~ /^[0-9a-fA-F]+$/ {
   for (i = 18; i <= 29; ++i) printf "    %s", $i
   printf "\n"
 }
-' "$CMSSW_SUM_IN32" > "$SUM_IN24"
+' gctsum_mc_sum_input.txt > "$sum_in24"
 
-cd "$APXROOT"
+compile=(g++ -O2 -std=c++17 -Wno-unknown-pragmas)
+link=()
+if [[ -n "$HLS_INCLUDE_DIR" && -f "$HLS_INCLUDE_DIR/ap_int.h" ]]; then
+  compile+=(-I"$HLS_INCLUDE_DIR")
+elif [[ -n "${XILINX_HLS:-}" && -f "$XILINX_HLS/include/ap_int.h" ]]; then
+  compile+=(-I"$XILINX_HLS/include")
+elif [[ -f /usr/include/systemc ]] && ldconfig -p 2>/dev/null | grep -q libsystemc; then
+  compile+=(-I"$xfdir/testing/host_compat" -Dmain=sc_main)
+  link+=(-lsystemc)
+  export SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1
+else
+  echo "No Xilinx ap_int.h or SystemC host backend found" >&2
+  exit 1
+fi
 
-g++ -O2 -std=c++17 \
-  -I"$HLS_INCLUDE_DIR" \
-  -I"$XFDIR/testing" \
-  -I"$XFDIR/AlgoSRC/SUM_IP" \
-  -I"$XFDIR/AlgoSRC/TO_GT_IP" \
-  "$XFDIR/testing/sumip_vector_replay.cpp" \
-  "$XFDIR/AlgoSRC/SUM_IP/algo_top.cpp" \
-  "$XFDIR/AlgoSRC/SUM_IP/bitonicSort32.cpp" \
-  -o "$XFDIR/testing/build/sumip_vector_replay"
+"${compile[@]}" \
+  -I"$xfdir/AlgoSRC/SUM_IP" \
+  test/gctsum_sum_firmware_replay.cpp \
+  "$xfdir/AlgoSRC/SUM_IP/algo_top.cpp" \
+  "$xfdir/AlgoSRC/SUM_IP/bitonicSort32.cpp" \
+  "${link[@]}" -o "$build_dir/gctsum_sum_firmware_replay"
 
-g++ -O2 -std=c++17 \
-  -I"$HLS_INCLUDE_DIR" \
-  -I"$XFDIR/testing" \
-  -I"$XFDIR/AlgoSRC/SUM_IP" \
-  -I"$XFDIR/AlgoSRC/TO_GT_IP" \
-  "$XFDIR/testing/togtip_vector_replay.cpp" \
-  "$XFDIR/AlgoSRC/TO_GT_IP/algo_top.cpp" \
-  -o "$XFDIR/testing/build/togtip_vector_replay"
+"${compile[@]}" \
+  -I"$xfdir/AlgoSRC/TO_GT_IP" \
+  test/gctsum_togt_firmware_replay.cpp \
+  "$xfdir/AlgoSRC/TO_GT_IP/algo_top.cpp" \
+  "${link[@]}" -o "$build_dir/gctsum_togt_firmware_replay"
 
-g++ -O2 -std=c++17 \
-  -I"$HLS_INCLUDE_DIR" \
-  -I"$XFDIR/testing" \
-  "$XFDIR/testing/compare_vector_tables.cpp" \
-  -o "$XFDIR/testing/build/compare_vector_tables"
-
-"$XFDIR/testing/build/sumip_vector_replay" \
-  "$SUM_IN24" \
-  "$SUMIP_OUT"
-
-"$XFDIR/testing/build/togtip_vector_replay" \
-  "$SUMIP_OUT" \
-  "$TOGT_OUT"
-
-"$XFDIR/testing/build/compare_vector_tables" \
-  "$CMSSW_GT_OUT" \
-  "$TOGT_OUT" \
-  6
+"$build_dir/gctsum_sum_firmware_replay" "$sum_in24" "$sumip_out"
+"$build_dir/gctsum_togt_firmware_replay" "$sumip_out" "$togt_out"
+python3 test/compare_firmware_tables.py gctsum_mc_gt_output.txt "$togt_out" GCTSum
