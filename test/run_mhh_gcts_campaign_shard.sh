@@ -17,6 +17,7 @@ emulator_cfg="$7"
 printf -v shard "%04d" "$job_index"
 analyzer_dir="$cmssw_src/L1Trigger/L1CaloPhase2Analyzer"
 edm_validator="$analyzer_dir/test/validate_mhh_gcts_edm.py"
+campaign_cfg="$analyzer_dir/test/run-mhh-gcts-campaign-edm.py"
 ntuple_cfg="$analyzer_dir/test/run-mhh-gcts-training-ntuple.py"
 ntuple_checker="$analyzer_dir/test/check_mhh_gcts_training_ntuple.py"
 input_pfn="root://cmsxrootd.fnal.gov/${input_lfn}"
@@ -24,7 +25,7 @@ input_pfn="root://cmsxrootd.fnal.gov/${input_lfn}"
 for path in "$cmssw_src" "$analyzer_dir"; do
   test -d "$path" || { echo "Missing directory: $path" >&2; exit 3; }
 done
-for path in "$emulator_cfg" "$edm_validator" "$ntuple_cfg" "$ntuple_checker"; do
+for path in "$emulator_cfg" "$campaign_cfg" "$edm_validator" "$ntuple_cfg" "$ntuple_checker"; do
   test -f "$path" || { echo "Missing required file: $path" >&2; exit 4; }
 done
 
@@ -53,6 +54,7 @@ training_output="mhh_gcts_${shard}_training.root"
   printf 'cmssw_commit=%s\n' "$(git -C "$cmssw_src" rev-parse HEAD)"
   printf 'analyzer_commit=%s\n' "$(git -C "$analyzer_dir" rev-parse HEAD)"
   printf 'emulator_cfg_sha256=%s\n' "$(sha256sum "$emulator_cfg" | awk '{print $1}')"
+  printf 'campaign_cfg_sha256=%s\n' "$(sha256sum "$campaign_cfg" | awk '{print $1}')"
   printf 'ntuple_cfg_sha256=%s\n' "$(sha256sum "$ntuple_cfg" | awk '{print $1}')"
 } > "provenance_${shard}.txt"
 
@@ -60,7 +62,8 @@ git -C "$cmssw_src" status --short > "cmssw_status_${shard}.txt"
 git -C "$analyzer_dir" status --short > "analyzer_status_${shard}.txt"
 
 echo "Running emulator chain for shard $shard"
-cmsRun "$emulator_cfg" \
+export MHH_GCTS_BASE_CFG="$emulator_cfg"
+cmsRun "$campaign_cfg" \
   inputFiles="$input_pfn" \
   maxEvents="$max_events" \
   outputFile="file:$edm_output" \
@@ -75,6 +78,16 @@ fi
 
 edmFileUtil -e "$edm_output" > "edm_events_${shard}.txt"
 edmDumpEventContent "$edm_output" > "edm_content_${shard}.txt"
+for required_label in \
+  simHcalTriggerPrimitiveDigis \
+  l1tHGCalTowerProducer \
+  l1tHGCalBackEndLayer2Producer
+do
+  grep -q "$required_label" "edm_content_${shard}.txt" || {
+    echo "Replay EDM is missing source-stage product: $required_label" >&2
+    exit 21
+  }
+done
 python3 "$edm_validator" "$edm_output" \
   --expect-zero-gctb \
   --require-nonzero \
@@ -82,7 +95,7 @@ python3 "$edm_validator" "$edm_output" \
 
 cmssw_commit="$(git -C "$cmssw_src" rev-parse HEAD)"
 analyzer_commit="$(git -C "$analyzer_dir" rev-parse HEAD)"
-emulator_cfg_hash="$(sha256sum "$emulator_cfg" | awk '{print $1}')"
+emulator_cfg_hash="$(sha256sum "$emulator_cfg" "$campaign_cfg" | sha256sum | awk '{print $1}')"
 ntuple_cfg_hash="$(sha256sum "$ntuple_cfg" | awk '{print $1}')"
 
 echo "Writing decoded training ROOT for shard $shard"

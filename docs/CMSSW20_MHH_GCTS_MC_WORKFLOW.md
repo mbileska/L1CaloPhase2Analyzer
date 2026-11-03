@@ -343,8 +343,9 @@ cd "$CMSSW_BASE/src/L1Trigger/L1CaloPhase2Analyzer"
 
 Every successful shard produces two complementary files:
 
-- `mhh_gcts_NNNN_edm.root`: replayable CMSSW EDM containing the retained HF,
-  DMX, MHH, GCTS-side and final-GT products plus generator truth;
+- `mhh_gcts_NNNN_edm.root`: replayable CMSSW EDM containing the HCAL trigger
+  primitives and HGCAL tower/multicluster inputs, retained HF/DMX adapter
+  links, MHH, GCTS-side and final-GT products plus generator truth;
 - `mhh_gcts_NNNN_training.root`: flat decoded training tree containing the
   raw HF, DMX, MHH, reconstructed GCTS input, GCTS-side and final-GT words,
   decoded objects/sums, generator truth and provenance.
@@ -354,6 +355,12 @@ requires matching EDM/ntuple event counts, and writes per-shard manifests and
 checksums.  Separate ROOT files for each individual module would duplicate the
 same event metadata and complicate alignment, so stages are branches/products
 inside these two synchronized files instead.
+
+The campaign EDM uses `test/run-mhh-gcts-campaign-edm.py` as a thin overlay on
+the proven integration configuration.  It explicitly keeps
+`simHcalTriggerPrimitiveDigis`, `l1tHGCalTowerProducer`, and
+`l1tHGCalBackEndLayer2Producer`; every shard checks that all three labels are
+present before validation can pass.
 
 After both full-file jobs pass, submit the complete DAS file list by changing
 only `--limit-files 0` and using a new campaign tag.

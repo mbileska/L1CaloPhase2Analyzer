@@ -66,10 +66,11 @@ voms-proxy-info -exists -valid 1:00 || {
 analyzer_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cmssw_src="$CMSSW_BASE/src"
 runner="$analyzer_dir/test/run_mhh_gcts_campaign_shard.sh"
+campaign_cfg="$analyzer_dir/test/run-mhh-gcts-campaign-edm.py"
 if test -z "$emulator_cfg"; then
   emulator_cfg="$cmssw_src/dy_mhh_gcts_test/runMHHGCTSumDY_cfg.py"
 fi
-for path in "$runner" "$emulator_cfg"; do
+for path in "$runner" "$emulator_cfg" "$campaign_cfg"; do
   test -f "$path" || { echo "Missing required file: $path" >&2; exit 5; }
 done
 
@@ -93,6 +94,7 @@ job_count="$(wc -l < "$campaign_dir/jobs.txt")"
 
 cp "$runner" "$campaign_dir/frozen_configs/"
 cp "$emulator_cfg" "$campaign_dir/frozen_configs/"
+cp "$campaign_cfg" "$campaign_dir/frozen_configs/"
 cp "$analyzer_dir/test/run-mhh-gcts-training-ntuple.py" "$campaign_dir/frozen_configs/"
 cp "$analyzer_dir/test/check_mhh_gcts_training_ntuple.py" "$campaign_dir/frozen_configs/"
 cp "$analyzer_dir/test/validate_mhh_gcts_edm.py" "$campaign_dir/frozen_configs/"
@@ -136,6 +138,8 @@ SUBMIT
   printf 'analyzer_commit=%s\n' "$(git -C "$analyzer_dir" rev-parse HEAD)"
   printf 'emulator_cfg=%s\n' "$emulator_cfg"
   printf 'emulator_cfg_sha256=%s\n' "$(sha256sum "$emulator_cfg" | awk '{print $1}')"
+  printf 'campaign_cfg_sha256=%s\n' \
+    "$(sha256sum "$campaign_cfg" | awk '{print $1}')"
   printf 'proxy_timeleft=%s\n' "$(voms-proxy-info -timeleft)"
 } > "$campaign_dir/CAMPAIGN_PROVENANCE.txt"
 

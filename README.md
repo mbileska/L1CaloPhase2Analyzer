@@ -91,8 +91,9 @@ After the ten-event gate passes, launch a two-file, all-event pilot with:
   --limit-files 2
 ```
 
-Each shard writes `mhh_gcts_NNNN_edm.root`, containing the replayable CMSSW
-products at the packed HF/DMX, MHH and GCTS stages, plus
+Each shard writes `mhh_gcts_NNNN_edm.root`, containing the replayable HCAL TP
+and HGCAL tower/multicluster inputs plus the packed HF/DMX, MHH and GCTS stages,
+and
 `mhh_gcts_NNNN_training.root`, containing the corresponding fixed-shape raw
 branches, decoded physical quantities, truth and provenance.  This avoids
 duplicating the same events into one ROOT file per module while still retaining
