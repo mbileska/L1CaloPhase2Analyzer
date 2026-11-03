@@ -4,6 +4,18 @@ This package validates the CMSSW GCTSum and HF/HGCAL mixer (MHH) emulators.
 It records the packed link payloads, decodes useful ROOT branches, and compares
 CMSSW output against the authoritative firmware C++ models.
 
+## CMSSW 20 MHH/GCTS simulated-MC workflow
+
+The reproducible Wisconsin workflow for running the MHH-to-GCTS chain on
+Phase2Fall26 `GEN-SIM-DIGI-RAW`, validating the ten-event reference output,
+and scaling to one input file per Condor job is documented in
+[`docs/CMSSW20_MHH_GCTS_MC_WORKFLOW.md`](docs/CMSSW20_MHH_GCTS_MC_WORKFLOW.md).
+
+That workflow requires CMSSW `20_0_0_patch2`.  The analyzer implementation on
+this `15_0_0_pre3_calojet` branch has **not** yet been ported to CMSSW 20 and
+must not be assumed to decode the sums-ABI-v2 products correctly.  The
+standalone EDM validator in `test/validate_mhh_gcts_edm.py` is ABI-v2 aware.
+
 ## Checkout Layout
 
 The default scripts assume the CMSSW release and APX firmware repository are
