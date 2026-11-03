@@ -16,6 +16,39 @@ this `15_0_0_pre3_calojet` branch has **not** yet been ported to CMSSW 20 and
 must not be assumed to decode the sums-ABI-v2 products correctly.  The
 standalone EDM validator in `test/validate_mhh_gcts_edm.py` is ABI-v2 aware.
 
+## Is the APX firmware checkout required?
+
+No, not for ordinary CMSSW event production.  Once the clean firmware-derived
+MHH/GCTS headers and producers have been committed in the CMSSW area, this
+runtime path is self-contained:
+
+```text
+Phase-2 MC -> CMSSW HF/DMX adapters -> CMSSW MHH -> CMSSW GCTS -> EDM/ntuple ROOT
+```
+
+Producing those ROOT files requires the compatible CMSSW release and branch,
+the CMSSW configuration, the input MC, and any desired analyzer or validator.
+It does **not** require a live checkout of
+`apx-fs-r2-gctsum_wip/targets/xF13P`.
+
+The dependency by task is:
+
+| Task | Needs `apx-fs-r2-gctsum_wip/targets/xF13P`? |
+| --- | --- |
+| Run the CMSSW MHH/GCTS chain on MC | No |
+| Write the replay EDM or training ntuple | No |
+| Run `test/validate_mhh_gcts_edm.py` on an EDM file | No |
+| Run the analyzer's ROOT-only diagnostic checkers | No |
+| Run `runComparison.bash` or `runMHHComparison.bash` for exact CMSSW/firmware parity | Yes |
+| Rebuild/update the emulator from the authoritative firmware C++ | Yes |
+| Run HLS, RTL, TMUX6, scouting, link-distribution, or FPGA tests | Yes |
+
+The APX repository remains the authoritative firmware source and is strongly
+recommended for release validation.  Record the APX branch and commit used to
+derive the CMSSW code even when the repository is not present in production.
+The sibling-checkout layout below applies to the parity drivers, not to a
+normal `cmsRun` production job.
+
 ## Checkout Layout
 
 The default scripts assume the CMSSW release and APX firmware repository are
