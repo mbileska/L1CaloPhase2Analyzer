@@ -50,4 +50,11 @@
 <use   name="root"/>
 <use   name="L1Trigger/L1TCaloLayer1"/>
 <use   name="hls"/>
-<flags EDM_PLUGIN="1"/>
+<!--
+  CMSSW_20 workflow library.  The legacy RCT analyzers in this directory use
+  DataFormats/L1TCalorimeterPhase2 interfaces that are not part of the
+  CMSSW_20_0_0_patch2 port and are intentionally excluded from this plugin.
+-->
+<library file="MHHGCTSTrainingNtuplizer.cc" name="L1TriggerL1CaloPhase2AnalyzerMHHGCTSPlugins">
+  <flags EDM_PLUGIN="1"/>
+</library>

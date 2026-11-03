@@ -24,6 +24,11 @@ tower/multicluster collections themselves.  It retains the MC-derived HF/DMX
 adapter link payloads.  Adding direct subsystem-level features is a separate
 first-stage output change; they must not be inferred from the packed links.
 
+On this CMSSW-20 workflow branch, the plugin BuildFile intentionally builds
+only `MHHGCTSTrainingNtuplizer.cc`.  The older RCT analyzers remain in the
+repository for the CMSSW-15-era branches, but depend on removed
+`DataFormats/L1TCalorimeterPhase2` interfaces and are not part of this port.
+
 ## Is the APX firmware checkout required?
 
 No, not for ordinary CMSSW event production.  Once the clean firmware-derived

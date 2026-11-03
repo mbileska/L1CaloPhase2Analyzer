@@ -198,6 +198,11 @@ not be reused unchanged.  The `cmssw20-mhh-gcts-workflow` branch provides the
 ABI-v2-aware `MHHGCTSTrainingNtuplizer`, its CMSSW configuration, a TTree
 checker, and a Wisconsin Condor submission helper.
 
+The CMSSW-20 plugin BuildFile compiles only this ntuplizer.  Legacy RCT
+analyzers in the same source directory include interfaces removed from this
+release; they remain available on their original CMSSW-15-era branches and
+are deliberately excluded from this build.
+
 Use fixed-shape unsigned 64-bit raw branches:
 
 ```text
