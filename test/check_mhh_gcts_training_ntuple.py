@@ -81,6 +81,10 @@ def main():
     )
     parser.add_argument("input", help="Training ROOT file")
     parser.add_argument("--expected-events", type=int)
+    parser.add_argument(
+        "--expected-edm",
+        help="EDM ROOT file whose Events-tree entry count must match the training tree",
+    )
     parser.add_argument("--expect-zero-gctb", action="store_true")
     parser.add_argument("--require-truth", action="store_true")
     parser.add_argument("--require-nonzero", action="store_true")
@@ -96,6 +100,19 @@ def main():
     entries = int(tree.GetEntries())
     if args.expected_events is not None and entries != args.expected_events:
         raise RuntimeError(f"expected {args.expected_events} entries, found {entries}")
+    if args.expected_edm:
+        edm_file = ROOT.TFile.Open(args.expected_edm)
+        if not edm_file or edm_file.IsZombie():
+            raise RuntimeError(f"cannot open expected EDM {args.expected_edm}")
+        events_tree = edm_file.Get("Events")
+        if not events_tree:
+            raise RuntimeError(f"missing Events tree in expected EDM {args.expected_edm}")
+        edm_entries = int(events_tree.GetEntries())
+        if entries != edm_entries:
+            raise RuntimeError(
+                f"training tree has {entries} entries but expected EDM has {edm_entries}"
+            )
+        edm_file.Close()
 
     branches = {branch.GetName() for branch in tree.GetListOfBranches()}
     missing = sorted(REQUIRED_BRANCHES - branches)
@@ -243,6 +260,8 @@ def main():
         raise RuntimeError("all decoded MHH object payloads are zero")
 
     print(f"PASS: {entries} training-tree entries and all required branches are valid")
+    if args.expected_edm:
+        print(f"PASS: training-tree and EDM event counts match ({entries})")
     print("PASS: decoded hardware-to-physical unit conversions are self-consistent")
     if args.expect_zero_gctb:
         print("PASS: every event explicitly records and contains zero-filled GCTB placeholders")

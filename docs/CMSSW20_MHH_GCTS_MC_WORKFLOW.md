@@ -330,6 +330,47 @@ ABI validator over every event, inspect missing-product counters, and measure
 runtime/output size.  Those measurements determine memory, disk, and job
 splitting for the dataset production.
 
+The committed campaign helper implements Gates 4 and 5.  Start with two
+complete input files:
+
+```bash
+cd "$CMSSW_BASE/src/L1Trigger/L1CaloPhase2Analyzer"
+./test/submit_mhh_gcts_campaign.sh \
+  --dataset '/DYToLL_M-10To50_TuneCP5_14TeV-pythia8/Phase2Fall26DIGI-DIGI_pilot_200X_mcRun4_realistic_v1-v3/GEN-SIM-DIGI-RAW' \
+  --max-events -1 \
+  --limit-files 2
+```
+
+Every successful shard produces two complementary files:
+
+- `mhh_gcts_NNNN_edm.root`: replayable CMSSW EDM containing the retained HF,
+  DMX, MHH, GCTS-side and final-GT products plus generator truth;
+- `mhh_gcts_NNNN_training.root`: flat decoded training tree containing the
+  raw HF, DMX, MHH, reconstructed GCTS input, GCTS-side and final-GT words,
+  decoded objects/sums, generator truth and provenance.
+
+The helper validates the ABI-v2 EDM, validates every packed-to-decoded record,
+requires matching EDM/ntuple event counts, and writes per-shard manifests and
+checksums.  Separate ROOT files for each individual module would duplicate the
+same event metadata and complicate alignment, so stages are branches/products
+inside these two synchronized files instead.
+
+After both full-file jobs pass, submit the complete DAS file list by changing
+only `--limit-files 0` and using a new campaign tag.
+
+When the queue is empty, summarize the pilot without loading the ROOT event
+data on the login node:
+
+```bash
+CAMPAIGN_DIR="$(cat "$HOME/latest_mhhgcts_campaign_dir.txt")"
+python3 "$CMSSW_BASE/src/L1Trigger/L1CaloPhase2Analyzer/test/check_mhh_gcts_campaign.py" \
+  "$CAMPAIGN_DIR"
+```
+
+This requires every success marker, manifest, ROOT pair, validation record and
+checksum list, verifies that stderr is empty, and writes
+`campaign_manifest.csv`.
+
 ## Gate 5: one input file per Condor job
 
 The following creates the production input list on `login.hep.wisc.edu`:

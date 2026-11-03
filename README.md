@@ -82,6 +82,22 @@ a larger campaign.  The output tree is
 `[EG, EGIso, Jet, Tau]`, eta side `[positive, negative]`, then rank `0..5`.
 See the workflow document for the complete branch contract and scaling gates.
 
+After the ten-event gate passes, launch a two-file, all-event pilot with:
+
+```bash
+./test/submit_mhh_gcts_campaign.sh \
+  --dataset '/DYToLL_M-10To50_TuneCP5_14TeV-pythia8/Phase2Fall26DIGI-DIGI_pilot_200X_mcRun4_realistic_v1-v3/GEN-SIM-DIGI-RAW' \
+  --max-events -1 \
+  --limit-files 2
+```
+
+Each shard writes `mhh_gcts_NNNN_edm.root`, containing the replayable CMSSW
+products at the packed HF/DMX, MHH and GCTS stages, plus
+`mhh_gcts_NNNN_training.root`, containing the corresponding fixed-shape raw
+branches, decoded physical quantities, truth and provenance.  This avoids
+duplicating the same events into one ROOT file per module while still retaining
+every stage.  Use `--limit-files 0` only after the two full-file shards pass.
+
 ## Checkout Layout
 
 The default scripts assume the CMSSW release and APX firmware repository are
