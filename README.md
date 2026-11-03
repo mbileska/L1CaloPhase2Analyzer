@@ -11,10 +11,18 @@ Phase2Fall26 `GEN-SIM-DIGI-RAW`, validating the ten-event reference output,
 and scaling to one input file per Condor job is documented in
 [`docs/CMSSW20_MHH_GCTS_MC_WORKFLOW.md`](docs/CMSSW20_MHH_GCTS_MC_WORKFLOW.md).
 
-That workflow requires CMSSW `20_0_0_patch2`.  The analyzer implementation on
-this `15_0_0_pre3_calojet` branch has **not** yet been ported to CMSSW 20 and
-must not be assumed to decode the sums-ABI-v2 products correctly.  The
-standalone EDM validator in `test/validate_mhh_gcts_edm.py` is ABI-v2 aware.
+That workflow requires CMSSW `20_0_0_patch2`.  The
+`cmssw20-mhh-gcts-workflow` branch adds the ABI-v2-aware
+`MHHGCTSTrainingNtuplizer`, its configuration and output checker.  It converts
+the replay EDM into a flat TTree containing every available raw link stage,
+decoded MHH/GCTS objects and sums in hardware and physical units, generator
+jets/MET, and explicit provenance.  Run the ten-event compile/runtime gate in
+the workflow document before using it for a campaign.
+
+The first reference EDM does not retain the original HCAL TP and HGCAL
+tower/multicluster collections themselves.  It retains the MC-derived HF/DMX
+adapter link payloads.  Adding direct subsystem-level features is a separate
+first-stage output change; they must not be inferred from the packed links.
 
 ## Is the APX firmware checkout required?
 
@@ -48,6 +56,26 @@ recommended for release validation.  Record the APX branch and commit used to
 derive the CMSSW code even when the repository is not present in production.
 The sibling-checkout layout below applies to the parity drivers, not to a
 normal `cmsRun` production job.
+
+## CMSSW 20 decoded training ntuple
+
+After installing this package in the working CMSSW-20 area and building it,
+convert the frozen ten-event replay EDM on a compatible Wisconsin worker with:
+
+```bash
+cd "$CMSSW_BASE/src/L1Trigger/L1CaloPhase2Analyzer"
+./test/submit_mhh_gcts_training_ntuple.sh \
+  --input-edm "$HOME/mhhgcts_results/20261103_dy_10event_smoke/mhh_gctsum_dy_10events_edm_numEvent10.root" \
+  --dataset '/DYToLL_M-10To50_TuneCP5_14TeV-pythia8/Phase2Fall26DIGI-DIGI_pilot_200X_mcRun4_realistic_v1-v3/GEN-SIM-DIGI-RAW' \
+  --source-lfn '/store/mc/Phase2Fall26DIGI/DYToLL_M-10To50_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW/DIGI_pilot_200X_mcRun4_realistic_v1-v3/2560000/a01895fa-67ee-4f7d-9c71-c68cb648e3c5.root' \
+  --max-events 10
+```
+
+This submits one local AVX2-restricted Condor validation job; it does not start
+a larger campaign.  The output tree is
+`mhhGCTSTrainingNtuplizer/trainingTree`.  Array ordering is object type
+`[EG, EGIso, Jet, Tau]`, eta side `[positive, negative]`, then rank `0..5`.
+See the workflow document for the complete branch contract and scaling gates.
 
 ## Checkout Layout
 

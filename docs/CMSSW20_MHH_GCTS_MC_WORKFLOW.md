@@ -132,7 +132,7 @@ reviewable CMSSW-20 branch:
 - `l1tPhase2L1MHHGCTSumSmoke_cff.py`;
 - the exact `runMHHGCTSumDY_cfg.py` that succeeded;
 - the two firmware-equivalence tests;
-- the CMSSW-20 ntuplizer once implemented.
+- the CMSSW-20 ntuplizer and its output checker.
 
 Record the state of the successful local area before changing it:
 
@@ -191,12 +191,12 @@ On an old login node this may raise `SIGILL`; that is why this command belongs
 inside an AVX2-restricted Condor validation job or on a known compatible host.
 Do not scale until it prints both `PASS` lines.
 
-## Gate 3: add a CMSSW-20 training ntuplizer
+## Gate 3: build and validate the CMSSW-20 training ntuplizer
 
-The existing `L1TGCTSumAnalyzer` on this branch predates this CMSSW-20
-integration and must not be reused unchanged.  Add an ABI-v2-aware analyzer,
-for example `MHHGCTSTrainingNtuplizer`, and write a second ROOT output beside
-the replay EDM.
+The existing `L1TGCTSumAnalyzer` predates this CMSSW-20 integration and must
+not be reused unchanged.  The `cmssw20-mhh-gcts-workflow` branch provides the
+ABI-v2-aware `MHHGCTSTrainingNtuplizer`, its CMSSW configuration, a TTree
+checker, and a Wisconsin Condor submission helper.
 
 Use fixed-shape unsigned 64-bit raw branches:
 
@@ -209,19 +209,49 @@ gcts_sum_words[2][3][9]
 gcts_gt_words[6][9]
 ```
 
-The first side index is positive eta and the second is negative eta.  Also
-store decoded integer quantities, physical-unit views, source-level HCAL/HGCAL
-inputs needed for retraining, generator truth, and provenance:
+The first side index is positive eta and the second is negative eta.  The
+object arrays use `[type][side][rank]`, where type is
+`[EG, EGIso, Jet, Tau]`, side is `[positive eta, negative eta]`, and rank is
+`0..5`.  The implementation also stores:
 
 ```text
-run, lumi, event
-dataset, input LFN, CMSSW release, GlobalTag, git commit, configuration hash
-gctbPresent, gctbSourceMask, product-presence masks
-decoded MHH objects and source sums
-decoded GCTS side objects/sums and final GT objects/sums
-HCAL TP, HGCAL tower, HGCAL multicluster inputs
-gen jets, gen MET and any chosen truth labels
+run, lumi, event, productPresenceMask
+dataset, source LFN, input EDM, CMSSW release, GlobalTag
+CMSSW commit, Analyzer commit, emulator/ntuple configuration hashes
+gctbPresent, gctbSourceMask, gctsInputDerived
+decoded MHH objects and source sums (integer codes and GeV/radian views)
+decoded GCTS side objects and sums (integer codes and GeV/radian views)
+decoded final GT objects plus MET, MHT, ET, HT and NObj
+generator jets and generator MET
 ```
+
+The packed-object decoder follows the frozen interface:
+
+- source energy LSB: `0.5 GeV`;
+- GT energy LSB: `1/32 GeV`;
+- GT phi LSB: `pi/4096`;
+- MHH gamma phi: 360-bin view; MHH jet/tau phi: 24-bin view;
+- `mhhObjectSourceFlag` is the MHH adapter-source bit (`0=HF`, `1=HGCAL`),
+  not a barrel/endcap flag;
+- `gctsObjectIsBarrel` is the classification after GCTS merges its inputs;
+- `gctsObjectEta` applies the packet-side sign and the firmware conversion
+  `hwEta * 23 * gtEtaLSB`;
+- GT object eta is an unsigned packed magnitude.  `gtObjectEta` applies the
+  sign from the positive/negative packet slot; the configurable magnitude LSB
+  is stored as `gtEtaLSB`.
+
+The baseline non-sum object coordinate conversion has not been newly
+physics-certified by the sums-ABI-v2 work, so retain both the raw word and
+integer code.  Never train solely on the floating view without freezing and
+reviewing these scale parameters.
+
+The frozen reference EDM contains real MC-derived HF and DMX adapter links but
+does **not** retain the original HCAL trigger primitives or HGCAL
+tower/multicluster collections.  Therefore this first ntuple stores every
+available packed stage, not the direct detector-subsystem collections.  To use
+those collections as distributed-training features, extend the first-stage
+EDM output and ntuplizer explicitly; do not reconstruct or label them as raw
+detector inputs from the adapter words.
 
 The two outputs serve different purposes:
 
@@ -231,6 +261,61 @@ The two outputs serve different purposes:
 
 Do not replace the EDM with the ntuple.  Retain at least a prescaled replay
 EDM sample so unexpected training examples can be reproduced.
+
+### Install, build and submit the ten-event conversion
+
+On `login.hep.wisc.edu`, after entering the existing CMSSW-20 area:
+
+```bash
+set -euo pipefail
+
+source /cvmfs/cms.cern.ch/cmsset_default.sh
+cd "$HOME/CMSSW_20_0_0_patch2_MHHGCTS/src"
+eval "$(scram runtime -sh)"
+
+ANALYZER="$CMSSW_BASE/src/L1Trigger/L1CaloPhase2Analyzer"
+if test -d "$ANALYZER/.git"; then
+  git -C "$ANALYZER" fetch origin
+  git -C "$ANALYZER" switch cmssw20-mhh-gcts-workflow
+  git -C "$ANALYZER" pull --ff-only origin cmssw20-mhh-gcts-workflow
+else
+  git clone --branch cmssw20-mhh-gcts-workflow \
+    https://github.com/mbileska/L1CaloPhase2Analyzer.git \
+    "$ANALYZER"
+fi
+
+cd "$CMSSW_BASE/src"
+scram b -j 8
+
+cd "$ANALYZER"
+./test/submit_mhh_gcts_training_ntuple.sh \
+  --input-edm "$HOME/mhhgcts_results/20261103_dy_10event_smoke/mhh_gctsum_dy_10events_edm_numEvent10.root" \
+  --dataset '/DYToLL_M-10To50_TuneCP5_14TeV-pythia8/Phase2Fall26DIGI-DIGI_pilot_200X_mcRun4_realistic_v1-v3/GEN-SIM-DIGI-RAW' \
+  --source-lfn '/store/mc/Phase2Fall26DIGI/DYToLL_M-10To50_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW/DIGI_pilot_200X_mcRun4_realistic_v1-v3/2560000/a01895fa-67ee-4f7d-9c71-c68cb648e3c5.root' \
+  --max-events 10
+```
+
+The helper records the exact commits and configuration hashes, creates a
+unique `/scratch/$USER/mhhgcts_training_<timestamp>` directory, and submits
+one AVX2-restricted job.  It deliberately does **not** launch a campaign.
+Monitor and validate it from the same login scheduler:
+
+```bash
+TRAIN_DIR="$(cat "$HOME/latest_mhhgcts_training_dir.txt")"
+condor_q "$USER"
+tail -100 "$TRAIN_DIR/logs/condor.log"
+tail -100 "$TRAIN_DIR/logs/job.out"
+cat "$TRAIN_DIR/logs/job.err"
+
+test -f "$TRAIN_DIR/SUCCESS"
+cat "$TRAIN_DIR/training_validation.txt"
+ls -lh "$TRAIN_DIR/mhh_gcts_training.root"
+sha256sum -c "$TRAIN_DIR/SHA256SUMS"
+```
+
+The gate passes only when the checker reports the expected ten entries,
+required schema, self-consistent unit conversions and explicit zero-GCTB
+metadata.
 
 ## Gate 4: one complete input file
 
@@ -267,14 +352,20 @@ set -euo pipefail
 job_index="$1"
 input_lfn="$2"
 max_events="${3:--1}"
+dataset='/DYToLL_M-10To50_TuneCP5_14TeV-pythia8/Phase2Fall26DIGI-DIGI_pilot_200X_mcRun4_realistic_v1-v3/GEN-SIM-DIGI-RAW'
 cmssw_src="/afs/hep.wisc.edu/user/mbileska/CMSSW_20_0_0_patch2_MHHGCTS/src"
 cfg="$cmssw_src/dy_mhh_gcts_test/runMHHGCTSumDY_cfg.py"
 validator="$cmssw_src/L1Trigger/L1CaloPhase2Analyzer/test/validate_mhh_gcts_edm.py"
+analyzer_dir="$cmssw_src/L1Trigger/L1CaloPhase2Analyzer"
+ntuple_cfg="$analyzer_dir/test/run-mhh-gcts-training-ntuple.py"
+ntuple_checker="$analyzer_dir/test/check_mhh_gcts_training_ntuple.py"
 input_pfn="root://cmsxrootd.fnal.gov/${input_lfn}"
 
 test -d "$cmssw_src" || { echo "Missing CMSSW area: $cmssw_src"; exit 2; }
 test -f "$cfg" || { echo "Missing integration configuration: $cfg"; exit 3; }
 test -f "$validator" || { echo "Missing ABI-v2 validator: $validator"; exit 4; }
+test -f "$ntuple_cfg" || { echo "Missing training ntuple configuration: $ntuple_cfg"; exit 4; }
+test -f "$ntuple_checker" || { echo "Missing training ntuple checker: $ntuple_checker"; exit 4; }
 
 source /cvmfs/cms.cern.ch/cmsset_default.sh
 cd "$cmssw_src"
@@ -304,17 +395,43 @@ edmDumpEventContent "$edm_output" > "content_${job_index}.txt"
 python3 "$validator" "$edm_output" --expect-zero-gctb --require-nonzero \
   > "validation_${job_index}.txt"
 
+cmssw_commit="$(git -C "$cmssw_src" rev-parse HEAD)"
+analyzer_commit="$(git -C "$analyzer_dir" rev-parse HEAD)"
+emulator_cfg_hash="$(sha256sum "$cfg" | awk '{print $1}')"
+ntuple_cfg_hash="$(sha256sum "$ntuple_cfg" | awk '{print $1}')"
+
+cmsRun "$ntuple_cfg" \
+  inputFiles="file:$PWD/${edm_output#./}" \
+  maxEvents="$max_events" \
+  ntupleFile="mhh_gcts_${job_index}_training.root" \
+  dataset="$dataset" \
+  sourceLFN="$input_lfn" \
+  inputEDM="$edm_output" \
+  cmsswRelease="CMSSW_20_0_0_patch2" \
+  globalTag="200X_mcRun4_realistic_v1" \
+  cmsswCommit="$cmssw_commit" \
+  analyzerCommit="$analyzer_commit" \
+  emulatorConfigurationHash="$emulator_cfg_hash" \
+  ntupleConfigurationHash="$ntuple_cfg_hash" \
+  2>&1 | tee "ntuple_${job_index}.log"
+
+checker_args=(--expect-zero-gctb --require-truth --require-nonzero)
+if (( max_events >= 0 )); then
+  checker_args+=(--expected-events "$max_events")
+fi
+python3 "$ntuple_checker" "mhh_gcts_${job_index}_training.root" \
+  "${checker_args[@]}" > "ntuple_validation_${job_index}.txt"
+
 sha256sum "$edm_output" \
+  "mhh_gcts_${job_index}_training.root" \
   "cmsrun_${job_index}.log" \
+  "ntuple_${job_index}.log" \
   "events_${job_index}.txt" \
   "content_${job_index}.txt" \
   "validation_${job_index}.txt" \
+  "ntuple_validation_${job_index}.txt" \
   > "SHA256SUMS_${job_index}"
 ```
-
-The production configuration should also write
-`mhh_gcts_${job_index}_training.root`; add it to the checksum after the
-CMSSW-20 ntuplizer exists.
 
 Create `$PROD_DIR/submit.sub`:
 
