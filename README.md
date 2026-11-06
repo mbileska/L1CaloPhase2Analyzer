@@ -4,6 +4,15 @@ This package validates the CMSSW GCTSum and HF/HGCAL mixer (MHH) emulators.
 It records the packed link payloads, decodes useful ROOT branches, and compares
 CMSSW output against the authoritative firmware C++ models.
 
+## Full-calorimeter distributed-trigger proof of concept
+
+The `dist-trigger-poc` branch pairs with `mbileska/cmssw:dist-trigger-poc` to
+connect RCT/GCTB and HF/HGCAL through MHH to GCTS. Its explicit 24-source
+analyzer preset and full-barrel validation mode are described in
+[`docs/DIST_TRIGGER_POC_ANALYZER.md`](docs/DIST_TRIGGER_POC_ANALYZER.md).
+The CMSSW branch supplies the complete event configuration, stage ROOT tree,
+Condor runner, and the assumptions that still require detector validation.
+
 ## CMSSW 20 MHH/GCTS simulated-MC workflow
 
 The reproducible Wisconsin workflow for running the MHH-to-GCTS chain on

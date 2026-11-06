@@ -85,7 +85,9 @@ def main():
         "--expected-edm",
         help="EDM ROOT file whose Events-tree entry count must match the training tree",
     )
-    parser.add_argument("--expect-zero-gctb", action="store_true")
+    gctb_mode = parser.add_mutually_exclusive_group()
+    gctb_mode.add_argument("--expect-zero-gctb", action="store_true")
+    gctb_mode.add_argument("--expect-full-gctb", action="store_true")
     parser.add_argument("--require-truth", action="store_true")
     parser.add_argument("--require-nonzero", action="store_true")
     args = parser.parse_args()
@@ -136,6 +138,7 @@ def main():
             raise RuntimeError(f"{name} has static length {actual}, expected {expected}")
 
     nonzero_payload = False
+    nonzero_barrel = False
     mhh_object_pt = tree.GetLeaf("mhhObjectPtGeV")
     mhh_object_raw = tree.GetLeaf("mhhObjectRaw48")
     mhh_object_hw_et = tree.GetLeaf("mhhObjectHwEt")
@@ -177,6 +180,25 @@ def main():
                                 f"event {tree.event}: derived GCTS input mismatch at "
                                 f"side={side}, link={link}, word={word}"
                             )
+        if args.expect_full_gctb:
+            if not bool(tree.gctbPresent) or int(tree.gctbSourceMask) != 7:
+                raise RuntimeError(f"event {tree.event}: full-barrel metadata is incorrect")
+            if bool(tree.gctsInputDerived):
+                raise RuntimeError(f"event {tree.event}: expected explicit GCTS input links")
+            for side in range(2):
+                for link in range(12):
+                    for word in range(9):
+                        input_index = side * 12 * 9 + link * 9 + word
+                        actual = gcts_input_words.GetValueLong64(input_index)
+                        if link < 3:
+                            mhh_index = side * 6 * 9 + link * 9 + word
+                            if actual != mhh_words.GetValueLong64(mhh_index):
+                                raise RuntimeError(
+                                    f"event {tree.event}: MHH-to-GCTS input mismatch at "
+                                    f"side={side}, link={link}, word={word}"
+                                )
+                        else:
+                            nonzero_barrel |= actual != 0
 
         if args.require_truth and (not bool(tree.genJetsPresent) or not bool(tree.genMETPresent)):
             raise RuntimeError(f"event {tree.event}: generator truth products are missing")
@@ -258,6 +280,8 @@ def main():
 
     if args.require_nonzero and not nonzero_payload:
         raise RuntimeError("all decoded MHH object payloads are zero")
+    if args.expect_full_gctb and not nonzero_barrel:
+        raise RuntimeError("all GCTB input links are zero across the sample")
 
     print(f"PASS: {entries} training-tree entries and all required branches are valid")
     if args.expected_edm:
@@ -265,6 +289,8 @@ def main():
     print("PASS: decoded hardware-to-physical unit conversions are self-consistent")
     if args.expect_zero_gctb:
         print("PASS: every event explicitly records and contains zero-filled GCTB placeholders")
+    if args.expect_full_gctb:
+        print("PASS: every event has explicit GCTB sources and the sample has nonzero barrel input")
     if args.require_truth:
         print("PASS: generator jet and generator MET products are present in every event")
     return 0

@@ -1,5 +1,10 @@
 # CMSSW 20 MHH-to-GCTS Phase2Fall26 MC workflow
 
+This page records the earlier zero-GCTB smoke campaign. For the
+`dist-trigger-poc` full-calorimeter branch, use
+[DIST_TRIGGER_POC_ANALYZER.md](DIST_TRIGGER_POC_ANALYZER.md) and the paired
+CMSSW branch's decision log and Condor scripts.
+
 This document freezes the first successful end-to-end software integration
 run and defines the gates for scaling it into a training-data production.  It
 is intentionally explicit about what is real, what is provisional, and what
